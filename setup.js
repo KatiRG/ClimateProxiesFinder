@@ -113,7 +113,7 @@ customMarker = L.Marker.extend({
 
 // create array of markers from points and add them to the map
 for (var i = 0; i < points.length; i++) {
-   //markers[i] = new L.Marker([point.Latitude, point.Longitude], {icon: myIcon});
+   //markers[i] = new L.Marker([points[i].Latitude, points[i].Longitude], {icon: myIcon});
    markers[i] = new customMarker([points[i].Latitude, points[i].Longitude], {icon: myIcon, Id: (i+1).toString()});
    markers[i].bindPopup(
 		  "Id: " + "<b>" + points[i].Id + "</b></br>"
