@@ -19,10 +19,6 @@
     <link rel="stylesheet" href="lib/Leaflet.markercluster/MarkerCluster.css" />
     <link rel="stylesheet" href="lib/Leaflet.markercluster/MarkerCluster.Default.css" />
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.5.0/css/font-awesome.min.css">
-    <link rel="stylesheet" href="lib/Leaflet.zoomhome/leaflet.zoomhome.css"/>
-    <script src="lib/Leaflet.zoomhome/leaflet.zoomhome.js"></script>
-
     <script src="lib/Leaflet.Graticule/L.Graticule.js"></script>
 
     <script src="lib/Leaflet.MousePosition/L.Control.MousePosition.js"></script>
@@ -34,8 +30,8 @@
     <script src="lib/d3-3.5.15.min.js"></script>
     <script src="lib/crossfilter-1.3.12.min.js"></script>
 
-    <script src="lib/dc/dc.min.js"></script>
-    <link rel="stylesheet" href="lib/dc/dc.min.css" />
+    <script src="lib/dc/dc.js/dc.min.js"></script>
+    <link rel="stylesheet" href="lib/dc/dc.js/dc.min.css" />
 
     <script src="setup.js"></script>
 
@@ -45,8 +41,8 @@
 
     <link href="style.css" rel="stylesheet" type="text/css" media="all">
 
-    <script src="lib/pace.min.js"></script>
-    <link href="lib/pace-theme-loading-bar.css" rel="stylesheet" />
+    <!--<script src="lib/pace.min.js"></script>
+    <link href="lib/pace-theme-loading-bar.css" rel="stylesheet" />-->
 
   </head>
 
@@ -68,8 +64,8 @@
           </div>
           <div class="collapse navbar-collapse">
             <ul class="nav navbar-nav">
-              <li><a href="help.html" target="_blank">Help</a></li>
-              <li><a href="contact.html" target="_blank">Contact</a></li>
+              <li><a href="help.html">Help</a></li>
+              <li><a href="contact.html">Contact</a></li>
             </ul>
           </div><!--/.nav-collapse -->
         </div>
@@ -77,48 +73,39 @@
 
       <!-- Begin page content -->
       <div class="container">
-      	<div class="row">
-      		<div id="map" class="col-md-12" style="height: 300px;"></div>
+        <div class="row">
+          <div id="map" class="col-md-12" style="height: 300px;"></div>
         </div>
-      	<div class="row">
-           	    <div class="dc-chart col-md-4" id="chart-depth">
-			<div class="dc-chart-title">Depth (m)</div>
-			<a class="reset" href="javascript:depthChart.filterAll();dc.redrawAll();" style="display: none;">reset</a>
-			<a class="preset" href="javascript:depthChart.filterAll();depthChart.filter(dc.filters.RangedFilter(0., 500.));dc.redrawAll();">0:500</a>
-			<a class="preset" href="javascript:depthChart.filterAll();depthChart.filter(dc.filters.RangedFilter(0., 2000.));dc.redrawAll();">0:2000</a>
-			<a class="preset" href="javascript:depthChart.filterAll();depthChart.filter(dc.filters.RangedFilter(2000., 5000.));dc.redrawAll();">2000:5000</a>
-			<span class="reset" style="display: none;"><span class="filter"></span></span>
-			<br>
-           	    </div>
-           	     <div class="dc-chart col-md-4" id="chart-age">
-			<div class="dc-chart-title">Age (ka)</div>
-			<a class="reset" href="javascript:ageChart.filterAll();dc.redrawAll();" style="display: none;">reset</a>
-			<a class="preset" href="javascript:ageChart.filterAll();ageChart.filter(dc.filters.RangedFilter([-2.5, -2.5], [6.5, 6.5]));dc.redrawAll();" 
-					title="Mid-Holocene">MH</a>
-			<a class="preset" href="javascript:ageChart.filterAll();ageChart.filter(dc.filters.RangedFilter([-2.5, -2.5], [23, 23]));dc.redrawAll();" 
-					title="Last Glacial Maximum">LGM</a>
-			<a class="preset" href="javascript:ageChart.filterAll();ageChart.filter(dc.filters.RangedFilter([-2.5, -2.5], [50, 50]));dc.redrawAll();" 
-					title="Last Interglacial">LI</a>
-			<span class="reset" style="display: none;"><span class="filter"></span></span>
-			<br>
-           	     </div>
-           	     <div class="dc-chart col-md-2" id="chart-archive">
-			<div class="dc-chart-title">Archive type</div>
-			<a class="reset" href="javascript:archiveChart.filterAll();dc.redrawAll();" style="display: none;">reset</a>
-			<br>
-           	     </div>
-           	     <div class="dc-chart col-md-2" id="chart-material">
-			<div class="dc-chart-title">Material</div>
-			<a class="reset" href="javascript:materialChart.filterAll();dc.redrawAll();" style="display: none;">reset</a>
-			<br>
-           	     </div>
+        <div class="row">
+                <div class="dc-chart col-md-4" id="chart-depth">
+      <div class="dc-chart-title">Depth (m)</div>
+      <a class="reset" href="javascript:depthChart.filterAll();dc.redrawAll();" style="display: none;">reset</a>
+      <span class="reset" style="display: none;"><span class="filter"></span></span>
+      <br>
+                </div>
+                 <div class="dc-chart col-md-4" id="chart-age">
+      <div class="dc-chart-title">Age (ka)</div>
+      <a class="reset" href="javascript:ageChart.filterAll();dc.redrawAll();" style="display: none;">reset</a>
+      <span class="reset" style="display: none;"><span class="filter"></span></span>
+      <br>
+                 </div>
+                 <div class="dc-chart col-md-2" id="chart-archive">
+      <div class="dc-chart-title">Archive type</div>
+      <a class="reset" href="javascript:archiveChart.filterAll();dc.redrawAll();" style="display: none;">reset</a>
+      <br>
+                 </div>
+                 <div class="dc-chart col-md-2" id="chart-material">
+      <div class="dc-chart-title">Material</div>
+      <a class="reset" href="javascript:materialChart.filterAll();dc.redrawAll();" style="display: none;">reset</a>
+      <br>
+                 </div>
         </div>
-      	<div class="row">
-			<div id="totals"><span id="active">-</span> of <span id="total">-</span> proxies selected.</div>
+        <div class="row">
+      <div id="totals"><span id="active">-</span> of <span id="total">-</span> proxies selected.</div>
         </div>
-      	<div class="row">
-      		<div id="proxiesListTitle" class="col-md-12"></div>
-      		<div id="proxiesList" class="col-md-12" style="max-height: 160px; overflow-y:auto;"></div>
+        <div class="row">
+          <div id="proxiesListTitle" class="col-md-12"></div>
+          <div id="proxiesList" class="col-md-12" style="max-height: 160px; overflow-y:auto;"></div>
         </div>
       </div><!-- /.container -->
 
@@ -126,7 +113,7 @@
 
     <div id="footer">
        <div class="container">
-		<p class="text-muted credit">Realised by <a target="_blank" href="http://www.lsce.ipsl.fr/en"><span title="Climate and Environment Sciences Laboratory" style="font-weight:bold;">LSCE</span></a>&nbsp;<a target="_blank" href="http://www.lsce.ipsl.fr/en"><img src="LSCE_Icon.png" title="Climate and Environment Sciences Laboratory"/></a> and hosted by <a target="_blank" href="http://www.ipsl.fr/en"><span title="Institut Pierre Simon Laplace" style="font-weight:bold;">IPSL</span></a>&nbsp;<a target="_blank" href="http://www.ipsl.fr/en"><img src="IPSL_logo.png" title="Institut Pierre Simon Laplace"/></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Version 1.4 - 2016/02/08</p>
+    <p class="text-muted credit">Realised by <a target="_blank" href="http://www.lsce.ipsl.fr/en"><span title="Climate and Environment Sciences Laboratory" style="font-weight:bold;">LSCE</span></a>&nbsp;<a target="_blank" href="http://www.lsce.ipsl.fr/en"><img src="LSCE_Icon.png" title="Climate and Environment Sciences Laboratory"/></a> and hosted by <a target="_blank" href="http://www.ipsl.fr/en"><span title="Institut Pierre Simon Laplace" style="font-weight:bold;">IPSL</span></a>&nbsp;<a target="_blank" href="http://www.ipsl.fr/en"><img src="IPSL_logo.png" title="Institut Pierre Simon Laplace"/></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Version 1.4 - 2016/02/08</p>
       </div><!-- /.container -->
     </div>
 

@@ -4,24 +4,13 @@
   padding: 0 0;
 }
 
-.disabled {
-  opacity: 0.2; 
-  pointer-events: none; 
-  cursor: default;
-}
-
 .chart {
   display: inline-block;
   margin: 0 20px 20px;
+
 }
 
 .reset {
-  padding-left: 1em;
-  font-size: smaller;
-  color: #555;
-}
-
-.preset {
   padding-left: 1em;
   font-size: smaller;
   color: #555;
@@ -43,11 +32,6 @@
   fill: #F5B441;
 }
 
-#chart-age svg {
-  padding-top: 1em;
-  overflow: visible;
-}
-
 .axis path, .axis line {
   fill: none;
   stroke: #333;
@@ -58,9 +42,20 @@
   font: 10px sans-serif;
   fill: #333;
 }
-.x-axis-label,.y-axis-label {
-  font: 10px sans-serif;
-  fill: #333;
+
+#chart-depth .brush rect.extent {
+  fill: #2EA3DB;
+  fill-opacity: .25;
+}
+
+#chart-age .brush rect.extent {
+  fill: #F5B441;
+  fill-opacity: .25;
+}
+
+.brush .resize path {
+  fill: #eee;
+  stroke: #666;
 }
 
 #map-div {
@@ -109,10 +104,6 @@
   border-radius: 10px;
 } 
 
-.pointer {
-  cursor: pointer;
-}
-
 .symbol {
-  opacity: 0.5;
+  opacity: 0.8;
 }
