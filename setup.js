@@ -62,7 +62,9 @@ function init() {
 
 // Pre-calculate dimensions for better performance  
 // (c.f. https://dc-js.github.io/dc.js/docs/stock.html)
-d3.tsv("proxies_noDOI_noRef_opt.tsv", function(data) {
+//d3.tsv("proxies_noDOI_noRef_opt.tsv", function(data) {
+//d3.tsv("proxies_select_opt.tsv", function(data) {
+d3.tsv("proxies_opt.tsv", function(data) {
   
   data.forEach(function(d) {
 
