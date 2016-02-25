@@ -56,162 +56,170 @@ material_dict={
 }
 //====================================================================
 function init() {
+  var start = new Date().getTime();
 
-//d3.tsv("proxies_select.tsv", function(data) {
-//d3.tsv("proxies.tsv", function(data) {
-//d3.tsv("proxies_noDOI_noRef_opt_select.tsv", function(data) {
+  //d3.tsv("proxies_select.tsv", function(data) {
+  //d3.tsv("proxies.tsv", function(data) {
 
-// Pre-calculate dimensions for better performance  
-// (c.f. https://dc-js.github.io/dc.js/docs/stock.html)
-//d3.tsv("proxies_noDOI_noRef_opt.tsv", function(data) {
-d3.tsv("proxies_select_opt.tsv", function(data) {
-//d3.tsv("proxies_opt.tsv", function(data) {  
+  // Pre-calculate dimensions for better performance  
+  // (c.f. https://dc-js.github.io/dc.js/docs/stock.html)
+  //d3.tsv("proxies_select_opt.tsv", function(data) {
+  d3.tsv("proxies_opt.tsv", function(data) {
 
-  data.forEach(function(d) {    
+    data.forEach(function(d) {    
 
-    // Coerce to number
-    d.Longitude = +d.Longitude;
-    d.Latitude = +d.Latitude;
-    d.Depth = +d.Depth;
-    d.OldestDate = +d.OldestDate;
-    d.RecentDate = +d.RecentDate;
+      // Coerce to number
+      d.Longitude = +d.Longitude;
+      d.Latitude = +d.Latitude;
+      d.Depth = +d.Depth;
+      d.OldestDate = +d.OldestDate;
+      d.RecentDate = +d.RecentDate;
 
-    // Precalculate depth bins
-    if (d.Depth <= depthRange[0]) depthThresholded = depthRange[0];
-    else if (d.Depth >= depthRange[1]) depthThresholded = depthRange[1] - depthBinWidth;
-    else depthThresholded = d.Depth;
-    //d.Depth = depthBinWidth*Math.floor( depthThresholded/depthBinWidth );
-    d.binDepth = depthBinWidth*Math.floor( depthThresholded/depthBinWidth );
-    
+      // Precalculate depth bins
+      if (d.Depth <= depthRange[0]) depthThresholded = depthRange[0];
+      else if (d.Depth >= depthRange[1]) depthThresholded = depthRange[1] - depthBinWidth;
+      else depthThresholded = d.Depth;
+      //d.Depth = depthBinWidth*Math.floor( depthThresholded/depthBinWidth );
+      d.binDepth = depthBinWidth*Math.floor( depthThresholded/depthBinWidth );
+      
 
-    // Precalculate age bins
-    // RecentDate
-    if (d.RecentDate <= age1Range[0]) age1Thresholded = age1Range[0];
-    else if (d.RecentDate >= age1Range[1]) age1Thresholded = age1Range[1] - ageBinWidth;
-    else age1Thresholded = d.RecentDate;
-    d.binRecentDate = ageBinWidth*Math.floor( age1Thresholded/ageBinWidth );
-    
-    // OldestDate
-    if (d.OldestDate <= age2Range[0]) age2Thresholded = age2Range[0];
-    else if (d.OldestDate >= age2Range[1]) age2Thresholded = age2Range[1] - ageBinWidth;
-    else age2Thresholded = d.OldestDate;
-    d.binOldestDate = ageBinWidth*Math.floor( age2Thresholded/ageBinWidth );
+      // Precalculate age bins
+      // RecentDate
+      if (d.RecentDate <= age1Range[0]) age1Thresholded = age1Range[0];
+      else if (d.RecentDate >= age1Range[1]) age1Thresholded = age1Range[1] - ageBinWidth;
+      else age1Thresholded = d.RecentDate;
+      d.binRecentDate = ageBinWidth*Math.floor( age1Thresholded/ageBinWidth );
+      
+      // OldestDate
+      if (d.OldestDate <= age2Range[0]) age2Thresholded = age2Range[0];
+      else if (d.OldestDate >= age2Range[1]) age2Thresholded = age2Range[1] - ageBinWidth;
+      else age2Thresholded = d.OldestDate;
+      d.binOldestDate = ageBinWidth*Math.floor( age2Thresholded/ageBinWidth );
 
-  });  
-  points=data;
+    });  
+    points=data;
 
-  initMap();
-  initCrossfilter();
+    initMap();
+    initCrossfilter();
 
-// bind map bounds to lat/lng filter dimensions
-  latDimension = filter.dimension(function(d) { return d.Latitude; });
-  lngDimension = filter.dimension(function(d) { return d.Longitude; });
+  // bind map bounds to lat/lng filter dimensions
+    latDimension = filter.dimension(function(d) { return d.Latitude; });
+    lngDimension = filter.dimension(function(d) { return d.Longitude; });
 
-  map.on("moveend", function() {
-    var bounds = map.getBounds();
-    var northEast = bounds.getNorthEast();
-    var southWest = bounds.getSouthWest();
+    map.on("moveend", function() {
+      var bounds = map.getBounds();
+      var northEast = bounds.getNorthEast();
+      var southWest = bounds.getSouthWest();
 
-    // NOTE: need to be careful with the dateline here
-    latDimension.filterRange([southWest.lat, northEast.lat]);
-    lngDimension.filterRange([southWest.lng, northEast.lng]);
+      // NOTE: need to be careful with the dateline here
+      latDimension.filterRange([southWest.lat, northEast.lat]);
+      lngDimension.filterRange([southWest.lng, northEast.lng]);
+
+      update1();
+    });
+
+  // dimension and group for looking up currently selected markers
+    idDimension = filter.dimension(function(d, i) { return i; });
+    idGrouping = idDimension.group(function(id) { return id; });
+
+    // Render the total.
+    d3.selectAll("#total")
+              .text(filter.size());
+
+    initList();
 
     update1();
+
   });
-
-// dimension and group for looking up currently selected markers
-  idDimension = filter.dimension(function(d, i) { return i; });
-  idGrouping = idDimension.group(function(id) { return id; });
-
-  // Render the total.
-  d3.selectAll("#total")
-            .text(filter.size());
-
-  initList();
-
-  update1();
-
-});
+  var end = new Date().getTime();
+  var time = end - start;
+  console.log('init() time: ', time);
 
 }
 
 
 //====================================================================
 function initMap() {
+  var start = new Date().getTime();
 
-var mapmadeUrl = 'http://services.arcgisonline.com/ArcGIS/rest/services/Ocean_Basemap/MapServer/tile/{z}/{y}/{x}',
-//var mapmadeUrl = 'http://{s}.tile.osm.org/{z}/{x}/{y}.png',
-    mapmadeAttribution = 'LSCE &copy; 2014 | Baselayer &copy; ArcGis',
-    mapmade = new L.TileLayer(mapmadeUrl, {maxZoom: 10, attribution: mapmadeAttribution}),
-    maplatlng = new L.LatLng(0, 0);
+  var mapmadeUrl = 'http://services.arcgisonline.com/ArcGIS/rest/services/Ocean_Basemap/MapServer/tile/{z}/{y}/{x}',
+  //var mapmadeUrl = 'http://{s}.tile.osm.org/{z}/{x}/{y}.png',
+      mapmadeAttribution = 'LSCE &copy; 2014 | Baselayer &copy; ArcGis',
+      mapmade = new L.TileLayer(mapmadeUrl, {maxZoom: 10, attribution: mapmadeAttribution}),
+      maplatlng = new L.LatLng(0, 0);
 
-map = new L.Map('map', {center: maplatlng, zoom: 1, layers: [mapmade]});
+  map = new L.Map('map', {center: maplatlng, zoom: 1, layers: [mapmade]});
 
-grat_10 = L.graticule({ interval: 10, style: { color: '#333', weight: 1, opacity: 1. } }).addTo(map);
-grat_05 = L.graticule({ interval: 05, style: { color: '#333', weight: 1, opacity: 0. } }).addTo(map);
-grat_01 = L.graticule({ interval: 01, style: { color: '#333', weight: 1, opacity: 0. } }).addTo(map);
+  grat_10 = L.graticule({ interval: 10, style: { color: '#333', weight: 1, opacity: 1. } }).addTo(map);
+  grat_05 = L.graticule({ interval: 05, style: { color: '#333', weight: 1, opacity: 0. } }).addTo(map);
+  grat_01 = L.graticule({ interval: 01, style: { color: '#333', weight: 1, opacity: 0. } }).addTo(map);
 
-mousepos = new L.Control.MousePosition({lngFirst: true}).addTo(map);
+  mousepos = new L.Control.MousePosition({lngFirst: true}).addTo(map);
 
-mapmade2 = new L.TileLayer(mapmadeUrl, { maxZoom: 7, attribution: mapmadeAttribution });
-miniMap = new L.Control.MiniMap(mapmade2, { toggleDisplay: true, zoomLevelOffset: -6 }).addTo(map);
+  mapmade2 = new L.TileLayer(mapmadeUrl, { maxZoom: 7, attribution: mapmadeAttribution });
+  miniMap = new L.Control.MiniMap(mapmade2, { toggleDisplay: true, zoomLevelOffset: -6 }).addTo(map);
 
-myIcon = L.icon({
-    iconUrl: 'LSCE_Icon.png',
-    iconSize: [20, 20], 
-    iconAnchor: [10, 0] 
-});
-
-myIconBright = L.icon({
-    iconUrl: 'LSCE_IconBright.png',
-    iconSize: [20, 20], 
-    iconAnchor: [10, 0] 
-});
-
-markerGroup = new L.MarkerClusterGroup({chunkedLoading: true, maxClusterRadius: 50, showCoverageOnHover: false});
-
-//http://stackoverflow.com/questions/17423261/how-to-pass-data-with-marker-in-leaflet-js
-customMarker = L.Marker.extend({
-   options: { 
-      Id: 'Custom data!'
-   }
-});
-
-// create array of markers from points and add them to the map
-for (var i = 0; i < points.length; i++) {
-//   markers[i] = new L.Marker(new L.LatLng(points[i].Latitude, points[i].Longitude));
-   markers[i] = new customMarker([points[i].Latitude, points[i].Longitude], {icon: myIcon, Id: (i+1).toString()});
-   markers[i].bindPopup(
-      "Id: " + "<b>" + points[i].Id + "</b></br>"
-    + "Position: " + "<b>" + points[i].Longitude.toFixed(2) + "°E</b>, <b>" + points[i].Latitude.toFixed(2) + "°N</b></br>"
-    + "Depth (m): " + "<span style='color: #2EA3DB;'><b>" +  points[i].Depth.toFixed(2) + "</b></span></br>"
-    + "Date (ka): " + "<span style='color: #C9840B;'>" + "from <b>" + points[i].RecentDate.toFixed(2) + "</b> to <b>" + points[i].OldestDate.toFixed(2) + "</b></span></br>"
-    + "Archive: " + "<b>" + points[i].Archive + "</b></br>"
-    + "Material: " + "<b>" + points[i].Material + "</b></br>"
-    ,{autoPan: true, keepInView: true, closeOnClick: false}
-    );
-   markers[i].on('mouseover', function(e) {
-   e.target.setIcon(myIconBright);
-   e.target.openPopup();
-   //console.log(e.target.options.Id);
-   var container = $("#proxiesList");
-   var scrollTo = $("#"+e.target.options.Id);
-   container.scrollTop( scrollTo.offset().top - container.offset().top + container.scrollTop() );
-   scrollTo.css("font-weight", "bold");
+  myIcon = L.icon({
+      iconUrl: 'LSCE_Icon.png',
+      iconSize: [20, 20], 
+      iconAnchor: [10, 0] 
   });
-   markers[i].on('mouseout', function(e) {
-   e.target.setIcon(myIcon);
-   e.target.closePopup();
-         $(".proxyItem").css("font-weight", "normal");
+
+  myIconBright = L.icon({
+      iconUrl: 'LSCE_IconBright.png',
+      iconSize: [20, 20], 
+      iconAnchor: [10, 0] 
   });
-   markerGroup.addLayer(markers[i]);
-}
-map.addLayer(markerGroup);
+
+  markerGroup = new L.MarkerClusterGroup({chunkedLoading: true, maxClusterRadius: 50, showCoverageOnHover: false});
+
+  //http://stackoverflow.com/questions/17423261/how-to-pass-data-with-marker-in-leaflet-js
+  customMarker = L.Marker.extend({
+     options: { 
+        Id: 'Custom data!'
+     }
+  });
+
+  // create array of markers from points and add them to the map
+  for (var i = 0; i < points.length; i++) {
+  //   markers[i] = new L.Marker(new L.LatLng(points[i].Latitude, points[i].Longitude));
+     markers[i] = new customMarker([points[i].Latitude, points[i].Longitude], {icon: myIcon, Id: (i+1).toString()});
+     markers[i].bindPopup(
+        "Id: " + "<b>" + points[i].Id + "</b></br>"
+      + "Position: " + "<b>" + points[i].Longitude.toFixed(2) + "°E</b>, <b>" + points[i].Latitude.toFixed(2) + "°N</b></br>"
+      + "Depth (m): " + "<span style='color: #2EA3DB;'><b>" +  points[i].Depth.toFixed(2) + "</b></span></br>"
+      + "Date (ka): " + "<span style='color: #C9840B;'>" + "from <b>" + points[i].RecentDate.toFixed(2) + "</b> to <b>" + points[i].OldestDate.toFixed(2) + "</b></span></br>"
+      + "Archive: " + "<b>" + points[i].Archive + "</b></br>"
+      + "Material: " + "<b>" + points[i].Material + "</b></br>"
+      ,{autoPan: true, keepInView: true, closeOnClick: false}
+      );
+     markers[i].on('mouseover', function(e) {
+     e.target.setIcon(myIconBright);
+     e.target.openPopup();
+     //console.log(e.target.options.Id);
+     var container = $("#proxiesList");
+     var scrollTo = $("#"+e.target.options.Id);
+     container.scrollTop( scrollTo.offset().top - container.offset().top + container.scrollTop() );
+     scrollTo.css("font-weight", "bold");
+    });
+     markers[i].on('mouseout', function(e) {
+     e.target.setIcon(myIcon);
+     e.target.closePopup();
+           $(".proxyItem").css("font-weight", "normal");
+    });
+     markerGroup.addLayer(markers[i]);
+  }
+  map.addLayer(markerGroup);
+
+  var end = new Date().getTime();
+  var time = end - start;
+  console.log('initMap() time: ', time);
 
 }
 
 //====================================================================
 function initCrossfilter() {
+  var start = new Date().getTime();
 
   //-----------------------------------
   filter = crossfilter(points);
@@ -321,6 +329,10 @@ function initCrossfilter() {
   //-----------------------------------
   dc.renderAll();
 
+  var end = new Date().getTime();
+  var time = end - start;
+  console.log('initCrossfilter() time: ', time);
+
 }
 
 //====================================================================
@@ -346,6 +358,8 @@ function update0() {
 //====================================================================
 // Update dc charts, map markers, list and number of selected
 function update1() {
+  var start = new Date().getTime();
+
   dc.redrawAll();
   updateMarkers();
   updateList();
@@ -364,10 +378,16 @@ function update1() {
     grat_05.setStyle({opacity: 0.});
     break;
   }
+
+  var end = new Date().getTime();
+  var time = end - start;
+  console.log('update1() time: ', time);
 }
 
 //====================================================================
 function initList() {
+  var start = new Date().getTime();
+
   var proxyItem = d3.select("#proxiesListTitle")
       .append("div")
       .attr("class", "row");
@@ -475,6 +495,10 @@ function initList() {
           .attr("title", points[i].Reference)
           .text(points[i].Reference);
   }
+  var end = new Date().getTime();
+  var time = end - start;
+  console.log('initList() time: ', time);
+
 }
 
 //====================================================================
