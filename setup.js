@@ -420,7 +420,11 @@ function initList() {
       .style("width", "50px")
           .attr("title", "#"+ points[i].Id)
           .text("#"+points[i].Id)
-    .on("mouseover", function() { d3.select(this).style("font-weight", "bold"); })
+    .on("mouseover", function() { 
+      d3.select(this)
+        .style("font-weight", "bold")
+        .style("cursor", "pointer");
+      })
     .on("mouseout", function() { d3.select(this).style("font-weight", "normal"); })
     .on('click', popupfromlist);
     proxyItem.append("div")
@@ -457,7 +461,11 @@ function initList() {
           .style("text-align", "left")
           .attr("title", points[i].DOI)
           .text(points[i].DOI)
-    .on("mouseover", function() { d3.select(this).style("color", "#0645AD"); })
+    .on("mouseover", function() { 
+      d3.select(this)
+        .style("color", "#0645AD")
+        .style("cursor", "pointer"); 
+      })
     .on("mouseout", function() { d3.select(this).style("color", "#333"); })
     .on("click", function(d,i) { window.open("https://scholar.google.fr/scholar?q=" + points[i].DOI); });
     proxyItem.append("div")
