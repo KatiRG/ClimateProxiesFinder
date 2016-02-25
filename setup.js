@@ -22,6 +22,7 @@ var idDimension;
 var idGrouping;
 
 // depthChart vars
+var points = [];
 var depthThresholded;
 depthRange = [0., 5000.];
 depthBinWidth = 100.;
@@ -63,10 +64,10 @@ function init() {
 // Pre-calculate dimensions for better performance  
 // (c.f. https://dc-js.github.io/dc.js/docs/stock.html)
 //d3.tsv("proxies_noDOI_noRef_opt.tsv", function(data) {
-//d3.tsv("proxies_select_opt.tsv", function(data) {
-d3.tsv("proxies_opt.tsv", function(data) {
-  
-  data.forEach(function(d) {
+d3.tsv("proxies_select_opt.tsv", function(data) {
+//d3.tsv("proxies_opt.tsv", function(data) {  
+
+  data.forEach(function(d) {    
 
     // Coerce to number
     d.Longitude = +d.Longitude;
@@ -79,7 +80,8 @@ d3.tsv("proxies_opt.tsv", function(data) {
     if (d.Depth <= depthRange[0]) depthThresholded = depthRange[0];
     else if (d.Depth >= depthRange[1]) depthThresholded = depthRange[1] - depthBinWidth;
     else depthThresholded = d.Depth;
-    d.Depth = depthBinWidth*Math.floor( depthThresholded/depthBinWidth );
+    //d.Depth = depthBinWidth*Math.floor( depthThresholded/depthBinWidth );
+    d.binDepth = depthBinWidth*Math.floor( depthThresholded/depthBinWidth );
     
 
     // Precalculate age bins
@@ -87,15 +89,15 @@ d3.tsv("proxies_opt.tsv", function(data) {
     if (d.RecentDate <= age1Range[0]) age1Thresholded = age1Range[0];
     else if (d.RecentDate >= age1Range[1]) age1Thresholded = age1Range[1] - ageBinWidth;
     else age1Thresholded = d.RecentDate;
-    d.RecentDate = ageBinWidth*Math.floor( age1Thresholded/ageBinWidth );
+    d.binRecentDate = ageBinWidth*Math.floor( age1Thresholded/ageBinWidth );
     
     // OldestDate
     if (d.OldestDate <= age2Range[0]) age2Thresholded = age2Range[0];
     else if (d.OldestDate >= age2Range[1]) age2Thresholded = age2Range[1] - ageBinWidth;
     else age2Thresholded = d.OldestDate;
-    d.OldestDate = ageBinWidth*Math.floor( age2Thresholded/ageBinWidth );
+    d.binOldestDate = ageBinWidth*Math.floor( age2Thresholded/ageBinWidth );
 
-  });
+  });  
   points=data;
 
   initMap();
@@ -125,7 +127,7 @@ d3.tsv("proxies_opt.tsv", function(data) {
   d3.selectAll("#total")
             .text(filter.size());
 
-  //initList();
+  initList();
 
   update1();
 
@@ -215,12 +217,12 @@ function initCrossfilter() {
   filter = crossfilter(points);
 
   //-----------------------------------
-  depthDimension = filter.dimension( function(d) { return d.Depth; });
+  depthDimension = filter.dimension( function(d) { return d.binDepth; });
   depthGrouping = depthDimension.group();
 
   //-----------------------------------
   ageDimension = filter.dimension( function(d) { 
-    return [d.OldestDate, d.RecentDate]; 
+    return [d.binOldestDate, d.binRecentDate]; 
   });
   ageGrouping = ageDimension.group();
 
