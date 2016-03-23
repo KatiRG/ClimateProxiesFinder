@@ -161,6 +161,9 @@ function init() {
         var time = end - start;
         console.log('init() time: ', time);
 
+ });
+}
+
 //====================================================================
 function initMap() {
     var start = new Date().getTime();
