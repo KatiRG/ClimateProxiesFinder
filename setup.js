@@ -490,7 +490,7 @@ function initCrossfilter() {
         var id = d3.select(this).select(".dc-table-column._0").text();
         console.log("id: ", id)
 
-        popupFromList;
+        popupFromList(id);
 
         //d3.select(".dc-table-column._0").text()
         //console.log("id: ", id)
@@ -541,7 +541,7 @@ function update1() {
 
     dc.redrawAll();
     updateMarkers();
-    //updateList();
+    updateList();
     d3.select("#active").text(filter.groupAll().value());
     levelZoom = map.getZoom();
     switch (true) {
@@ -693,8 +693,9 @@ function initList() {
 }
 
 //====================================================================
-function popupFromList() {
-    var id = d3.select(this).text().split('#').pop();
+function popupFromList(id) {
+  console.log("in popupFromList")
+    //var id = d3.select(this).text().split('#').pop();
     var i = id - 1;
     var lng = points[i].Longitude;
     var lat = points[i].Latitude;
