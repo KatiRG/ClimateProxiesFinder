@@ -74,8 +74,8 @@ var DB_path = "/data01/brock/ClimateProxiesFinder_DB/20150923_html";
 function init() {
     var start = new Date().getTime();
 
-    //d3.tsv("proxies_select.tsv", function(data) {
-    d3.tsv("proxies.tsv", function(data) {
+    d3.tsv("proxies_select.tsv", function(data) {
+    //d3.tsv("proxies.tsv", function(data) {
 
         data.forEach(function(d) {
 
@@ -321,10 +321,16 @@ function initCrossfilter() {
     materialGrouping = materialDimension.group();
 
     //-----------------------------------
+    tableIdDimension = filter.dimension(function(d) {
+        return +d.Id;
+    });
+
+    //-----------------------------------
     depthChart = dc.barChart("#chart-depth");
     ageChart = dc.scatterPlot("#chart-age");
     archiveChart = dc.rowChart("#chart-archive");
     materialChart = dc.rowChart("#chart-material");
+    dataTable = dc.dataTable("#dcTable");
 
     //-----------------------------------
     depthChart
@@ -455,6 +461,49 @@ function initCrossfilter() {
        		return materialArray[d.key];
     	})
         .xAxis().ticks(4);
+
+    //-----------------------------------
+    dataTable
+        .width(1060)
+        .height(800)
+        .dimension(tableIdDimension)
+        .group(function(d) { return "Proxies Table"})
+        .size(6)
+        //.size(csv.length) //display all data
+        .columns([
+          function(d) { return d.Id; },
+          function(d) { return d.Depth; },
+          function(d) { return d.RecentDate; },
+          function(d) { return d.OldestDate; },
+          function(d) { return d.Archive; },
+          function(d) { return d.Material; },
+          function(d) { return d.DOI; },
+          function(d) { return d.Reference; }                  
+        ])
+        .sortBy(function(d){ return d.Id; })
+        .order(d3.ascending);
+
+      //http://stackoverflow.com/questions/21113513/reorder-datatable-by-column/21116676#21116676
+      //$('#dcTable').on('click', '.dc-table-column._0', function() {
+      $('#dcTable').on('click', '.dc-table-row', function() {
+        //var id = $(this).text();
+        var id = d3.select(this).select(".dc-table-column._0").text();
+        console.log("id: ", id)
+
+        popupFromList;
+
+        //d3.select(".dc-table-column._0").text()
+        //console.log("id: ", id)
+        // dataDim.dispose();
+        // dataDim = xf.dimension(function(d) {return d[column];});
+        // dataTable.dimension(dataDim)
+        // dataTable.sortBy(function(d) {
+        //   return d[column];
+        // });
+        // dataTable.redraw();
+      });
+
+
 
     //-----------------------------------
     dc.renderAll();
