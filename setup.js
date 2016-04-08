@@ -57,15 +57,14 @@ $(document).ready(function() {
 
     $('.leaflet-control-zoomhome-home')[0].click();
 
-    // d3.selectAll('.leaflet-marker-icon').on('click', function() {
-    // });
+    d3.selection.prototype.trigger = function(evtName, data) {  
+  	this.on(evtName)(data);
+    }
 
-//    $('#chart-map').on('click', '.leaflet-marker-icon', function() {
-//	      a=$('.leaflet-popup-content').text();
-//	      console.log(a);
-//	      tableIdDimension.filter(141);
-//	      dc.redrawAll();
-//    });
+    d3.selectAll('.leaflet-marker-icon').on('click', function() {
+    //$('.leaflet-marker-icon').on('click', function() {
+	      console.log("aaaa");
+    });
 
   });
 
