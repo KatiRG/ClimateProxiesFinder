@@ -147,11 +147,6 @@
 
             _chart._postRender();
 
-           
-                
-
-            console.log("calling chart._doRedraw")
-
             return _chart._doRedraw();
         };
 
@@ -348,32 +343,20 @@
             return _chart.title()(d);
         };
 
-        _chart._postRender = function () {
-            console.log("in _postRender fn")
-
-
-            
-            
-            if (_chart.brushOn()) {
-                console.log("_chart.brushOn(): ", _chart.brushOn())
+        _chart._postRender = function () {    
+            if (_chart.brushOn()) {                
                 if (_filterByArea) {
                     _chart.filterHandler(doFilterByArea);
-                }
-                console.log("calling zoomend moveend", _zooming)                   
-                    console.log("_zooming: ", _zooming)                    
-                _chart.map().on('zoomend moveend', zoomFilter, this);
-                //_chart.map().on('zoomend', zoomFilter, this);
-                if (!_filterByArea) {
-                    console.log("in !_filterByArea")          
+                }                    
+                _chart.map().on('zoomend moveend', zoomFilter, this);                
+                if (!_filterByArea) {                        
                     _chart.map().on('click', zoomFilter, this);
-                }
-                console.log("calling zoomstart, this: ", this)       
+                }                
                 _chart.map().on('zoomstart', zoomStart, this);
                 
             }
 
-            if (_cluster) {
-                console.log("_cluster: ", _cluster)
+            if (_cluster) {                
                 _layerGroup = new L.MarkerClusterGroup(_clusterOptions ? _clusterOptions : null);
             }
             else {
@@ -382,22 +365,15 @@
             _chart.map().addLayer(_layerGroup);
         };
 
-        _chart._doRedraw = function () {
-            console.log("in _doRedraw")
+        _chart._doRedraw = function () {            
             var groups = _chart._computeOrderedGroups(_chart.data()).filter(function (d) {
                 return _chart.valueAccessor()(d) !== 0;
             });
-
-            if (_currentGroups && _currentGroups.toString() === groups.toString()) console.log("exiting _doRedraw")
-            
+        
             if (_currentGroups && _currentGroups.toString() === groups.toString()) {
                 return;
             }
             _currentGroups = groups;
-
-            console.log("_currentGroups: ", _currentGroups)
-            console.log("_currentGroups.size: ", Object.keys(_currentGroups).length)
-            console.log("groups.size: ", Object.keys(groups).length)
 
             if (_rebuildMarkers) {
                 _markerList = {};
@@ -546,6 +522,7 @@
                 marker.bindPopup(_chart.popup()(v,marker));
             }
             if (_chart.brushOn() && !_filterByArea) {
+                console.log("call selectFilter")
                 marker.on('click',selectFilter);
             }
             _markerList[k] = marker;
@@ -556,11 +533,7 @@
             _zooming = true;
         };
 
-        var zoomFilter = function (e) {
-            console.log("in zoomFilter")
-            console.log("e: ", e)
-            console.log("_zooming: ", _zooming)
-            console.log("e.hard: ", e.hard)
+        var zoomFilter = function (e) {   
             if (e.type === 'moveend' && (_zooming || e.hard)) {                
                 return;
             }
@@ -578,9 +551,10 @@
                 }
                 //CN CHANGE
                 //filter = _chart.map().getBounds(); //!!!ADDING THIS CORRECTLY CHANGES COUNT WHEN HOME BUTTON IS CLICKED
+                //console.log("filter: ", filter)
+                //console.log("calling dc.events.trigger in zoomFilter fn")
                 //END CN CHANGE
-                console.log("filter: ", filter)
-                console.log("calling dc.events.trigger in zoomFilter fn")
+       
                 dc.events.trigger(function () {
                     _chart.filter(null);
                     if (filter) {
@@ -627,6 +601,7 @@
 
             _disableFitOnRedraw = true;
             var filter = e.target.key;
+            console.log("filter in selectFilter: ", filter)
             dc.events.trigger(function () {
                 _chart.filter(filter);
                 dc.redrawAll(_chart.chartGroup());

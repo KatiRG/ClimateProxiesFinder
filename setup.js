@@ -139,7 +139,7 @@ function initCrossfilter(data) {
       .center([45, -19])    // slightly different than zoomHome to have a info updated when triggered
       .zoom(2)         
       .fitOnRender(false)
-      .filterByArea(true)
+      .filterByArea(false)
       .cluster(true) 
       .clusterOptions({maxClusterRadius: 50, showCoverageOnHover: false, spiderfyOnMaxZoom: true})
       .icon(function(d) {
