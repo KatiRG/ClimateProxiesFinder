@@ -2,11 +2,6 @@
 var theMap;
 var mapMaxZoom = 8;
 
-var markers = [] ;
-var markerGroup ;
-
-var grat;
-
 var xf;
 var depthDim;
 var depthGroup;
@@ -61,12 +56,16 @@ $(document).ready(function() {
     new L.Control.MiniMap(mapmade, { toggleDisplay: true, zoomLevelOffset: -4 }).addTo(theMap);
 
     $('.leaflet-control-zoomhome-home')[0].click();
-    $('#chart-map').on('click', '.leaflet-marker-icon', function() {
-	      a=$('.leaflet-popup-content').text();
-	      console.log(a);
-	      tableIdDimension.filter(141);
-	      dc.redrawAll();
-    });
+
+    // d3.selectAll('.leaflet-marker-icon').on('click', function() {
+    // });
+
+//    $('#chart-map').on('click', '.leaflet-marker-icon', function() {
+//	      a=$('.leaflet-popup-content').text();
+//	      console.log(a);
+//	      tableIdDimension.filter(141);
+//	      dc.redrawAll();
+//    });
 
   });
 
@@ -139,7 +138,7 @@ function initCrossfilter(data) {
       .center([45, -19])    // slightly different than zoomHome to have a info updated when triggered
       .zoom(2)         
       .fitOnRender(false)
-      .filterByArea(false)
+      .filterByArea(true)
       .cluster(true) 
       .clusterOptions({maxClusterRadius: 50, showCoverageOnHover: false, spiderfyOnMaxZoom: true})
       .icon(function(d) {
@@ -158,14 +157,16 @@ function initCrossfilter(data) {
        })
       .title(function() {})
       .popup(function(d) {
-		    id = d.key[2] -1;
+		    id = d.key[2] -1;            
+
     		return  "Id: " + "<b>" + data[id].Id + "</b></br>"
     			+ "Position: " + "<b>" + data[id].Longitude.toFixed(2) + "°E</b>, <b>" + data[id].Latitude.toFixed(2) + "°N</b></br>"
     			+ "Depth (m): " + "<span style='color: " + Ocean_color + ";'><b>" +  data[id].Depth.toFixed(2) + "</b></span></br>"
     			+ "Date (ka): " + "<span style='color: #C9840B;'>" + "from <b>" + data[id].RecentDate.toFixed(2) + "</b> to <b>" + data[id].OldestDate.toFixed(2) + "</b></span></br>"
     			+ "Archive: " + "<b>" + data[id].Archive + "</b></br>"
     			+ "Material: " + "<b>" + data[id].Material + "</b></br>";
-       });
+       })
+       .popupOnHover(true);
 
   //-----------------------------------
   depthChart  = dc.barChart("#chart-depth");
