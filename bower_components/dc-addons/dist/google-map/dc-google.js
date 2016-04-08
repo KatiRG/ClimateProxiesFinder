@@ -355,7 +355,7 @@
             return marker;
         };
 
-        _chart._postRender = function () {
+        _chart._postRender = function () {            
             if (_chart.brushOn()) {
                 if (_filterByArea) {
                     _chart.filterHandler(doFilterByArea);
