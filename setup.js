@@ -67,6 +67,10 @@ $(document).ready(function() {
 //	      dc.redrawAll();
 //    });
 
+  $('#chart-map').on('click', function() {
+    console.log("clicked map")
+    });
+
   });
 
 });

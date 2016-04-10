@@ -643,13 +643,42 @@
             }
             var filter = e.target.key;
             console.log("filter in my_selectFilter: ", filter)
-            console.log("id in my_selectFilter: ", filter[2])            
+            console.log("id in my_selectFilter: ", filter[2])
+
+            //console.log("_markerList: ", _markerList)
+
+            //console.log("d3.select:", d3.select(".leaflet-marker-icon.leaflet-zoom-animated.leaflet-clickable"))
+
+            d3.select(".leaflet-marker-icon.leaflet-zoom-animated.leaflet-clickable")
+             .attr("id", "id-" + filter[2]);
+
+             // 
+
+            // find id in table column 0 that matches clicked marker id
+            d3.selectAll(".dc-table-column._0")
+              .text(function (d, i){
+                  if (parseInt(d.Id) == filter[2]) {
+                    console.log("this: ", this)
+                    console.log("parentNode: ", this.parentNode)
+                    //console.log("parentNode class: ", this.parentNode.className)
+                    console.log("d3 select: ", d3.select(this.parentNode))
+                    
+                    // select entire row beloging to marker id and bold the text
+                    d3.select(this.parentNode)
+                      .style("font-weight", "bold");
+                  }
+                console.log("d: ", d); 
+                console.log("filter[2]: ", filter[2])
+               return d.Id;
+             });
+             
+                
 
             //does not do anything
-            dc.events.trigger(function () {
-                _chart.filter(filter);
-                dc.redrawAll(_chart.chartGroup());
-            });
+            // dc.events.trigger(function () {
+            //     _chart.filter(filter);
+            //     dc.redrawAll(_chart.chartGroup());
+            // });
           
         };
         //END
