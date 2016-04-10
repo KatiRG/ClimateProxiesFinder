@@ -652,14 +652,16 @@
             d3.select(".leaflet-marker-icon.leaflet-zoom-animated.leaflet-clickable")
              .attr("id", "id-" + filter[2]);
 
-             // 
+            // clear any previously bolded rows in dcTable
+            d3.selectAll(".dc-table-row")
+             .style("font-weight", "normal");
 
             // find id in table column 0 that matches clicked marker id
             d3.selectAll(".dc-table-column._0")
               .text(function (d, i){
                   if (parseInt(d.Id) == filter[2]) {
-                    console.log("this: ", this)
-                    console.log("parentNode: ", this.parentNode)
+                    // console.log("this: ", this)
+                    // console.log("parentNode: ", this.parentNode)
                     //console.log("parentNode class: ", this.parentNode.className)
                     console.log("d3 select: ", d3.select(this.parentNode))
                     
@@ -667,8 +669,8 @@
                     d3.select(this.parentNode)
                       .style("font-weight", "bold");
                   }
-                console.log("d: ", d); 
-                console.log("filter[2]: ", filter[2])
+                // console.log("d: ", d); 
+                // console.log("filter[2]: ", filter[2])
                return d.Id;
              });
              
