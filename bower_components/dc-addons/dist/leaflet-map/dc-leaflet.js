@@ -1,7 +1,7 @@
 /*!
- * dc-addons v0.12.0
+ * dc-addons v0.13.1
  *
- * 2016-02-18 16:19:52
+ * 2016-04-08 11:34:39
  *
  */
 (function () {
@@ -19,15 +19,15 @@
         var _renderPopup = true;
         var _mapOptions = false;
         var _defaultCenter = false;
-        var _defaultZoom = false;
+        var _defaultZoom = true;
         var _brushOn = false;
 
         var _tiles = function (map) {
             L.tileLayer(
-               // 'http://{s}.tile.osm.org/{z}/{x}/{y}.png',
-		'http://services.arcgisonline.com/ArcGIS/rest/services/Ocean_Basemap/MapServer/tile/{z}/{y}/{x}.png',
+		'http://services.arcgisonline.com/ArcGIS/rest/services/Ocean_Basemap/MapServer/tile/{z}/{y}/{x}',
+                //'http://{s}.tile.osm.org/{z}/{x}/{y}.png',
                 {
-                    attribution: 'LSCE &copy; 2014 | Baselayer &copy; ArcGis'
+                    attribution: 'LSCE &copy; 2016 | Baselayer &copy; ArcGis'
                     //attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
                 }
             ).addTo(map);
@@ -70,8 +70,7 @@
         _chart.zoom = function (_) {
             if (!arguments.length) {
                 return _defaultZoom;
-            }
-
+            }            
             _defaultZoom = _;
             return _chart;
         };
@@ -138,7 +137,7 @@
         _chart._doRender = function () {
             var _map = L.map(_chart.root().node(), _chart.mapOptions());
 
-            if (_chart.center() && _chart.zoom()) {
+            if (_chart.center() && _chart.zoom()) {                
                 _map.setView(_chart.toLocArray(_chart.center()), _chart.zoom());
             }
 
@@ -301,7 +300,6 @@
     dc.leafletMarkerChart = function (parent, chartGroup) {
         var _chart = dc.baseLeafletChart({});
 
-        var _renderPopup = true;
         var _cluster = false; // requires leaflet.markerCluster
         var _clusterOptions = false;
         var _rebuildMarkers = false;
@@ -318,17 +316,20 @@
         var _fitOnRedraw = false;
         var _disableFitOnRedraw = false;
 
+        var _renderPopup = true;
+        var _popupOnHover = false;
+
         _chart.renderTitle(true);
 
         var _location = function (d) {
             return _chart.keyAccessor()(d);
         };
 
-        var _marker = function (d,map) {
+        var _marker = function (d) {
             var marker = new L.Marker(_chart.toLocArray(_chart.locationAccessor()(d)),{
                 title: _chart.renderTitle() ? _chart.title()(d) : '',
                 alt: _chart.renderTitle() ? _chart.title()(d) : '',
-                icon: _icon(),
+                icon: _icon(d, _chart.map()),
                 clickable: _chart.renderPopup() || (_chart.brushOn() && !_filterByArea),
                 draggable: false
             });
@@ -340,24 +341,23 @@
         };
 
         var _popup = function (d,marker) {
-            //return _chart.title()(d);			// change Patrick
-            return _chart.title()(d), marker;
+            return _chart.title()(d);
         };
 
-        _chart._postRender = function () {
-            if (_chart.brushOn()) {
+        _chart._postRender = function () {    
+            if (_chart.brushOn()) {                
                 if (_filterByArea) {
                     _chart.filterHandler(doFilterByArea);
-                }
-
-                _chart.map().on('zoomend moveend', zoomFilter, this);
-                if (!_filterByArea) {
+                }                    
+                _chart.map().on('zoomend moveend', zoomFilter, this);                
+                if (!_filterByArea) {                        
                     _chart.map().on('click', zoomFilter, this);
-                }
+                }                
                 _chart.map().on('zoomstart', zoomStart, this);
+                
             }
 
-            if (_cluster) {
+            if (_cluster) {                
                 _layerGroup = new L.MarkerClusterGroup(_clusterOptions ? _clusterOptions : null);
             }
             else {
@@ -366,10 +366,11 @@
             _chart.map().addLayer(_layerGroup);
         };
 
-        _chart._doRedraw = function () {
+        _chart._doRedraw = function () {            
             var groups = _chart._computeOrderedGroups(_chart.data()).filter(function (d) {
                 return _chart.valueAccessor()(d) !== 0;
             });
+        
             if (_currentGroups && _currentGroups.toString() === groups.toString()) {
                 return;
             }
@@ -453,6 +454,14 @@
             return _chart;
         };
 
+        _chart.popupOnHover = function (_) {
+            if (!arguments.length) {
+                return _popupOnHover;
+            }
+            _popupOnHover = _;
+            return _chart;
+        };
+
         _chart.cluster = function (_) {
             if (!arguments.length) {
                 return _cluster;
@@ -520,10 +529,28 @@
             marker.key = k;
             if (_chart.renderPopup()) {
                 marker.bindPopup(_chart.popup()(v,marker));
+
+                if (_chart.popupOnHover()) {
+                    marker.on('mouseover', function () {
+                        marker.openPopup();
+                    });
+
+                    marker.on('mouseout', function () {
+                        marker.closePopup();
+                    });
+                }
             }
-            if (_chart.brushOn() && !_filterByArea) {
+
+            if (_chart.brushOn() && !_filterByArea) {                
                 marker.on('click',selectFilter);
             }
+
+            //START
+            if (_chart.brushOn()) {
+                marker.on('click',my_selectFilter);
+            }
+           //END 
+
             _markerList[k] = marker;
             return marker;
         };
@@ -532,15 +559,15 @@
             _zooming = true;
         };
 
-        var zoomFilter = function (e) {
-            if (e.type === 'moveend' && (_zooming || e.hard)) {
+        var zoomFilter = function (e) {   
+            if (e.type === 'moveend' && (_zooming || e.hard)) {                
                 return;
             }
             _zooming = false;
 
             _disableFitOnRedraw = true;
 
-            if (_filterByArea) {
+            if (_filterByArea) {                
                 var filter;
                 if (_chart.map().getCenter().equals(_chart.center()) && _chart.map().getZoom() === _chart.zoom()) {
                     filter = null;
@@ -548,6 +575,12 @@
                 else {
                     filter = _chart.map().getBounds();
                 }
+                //CN CHANGE
+                //filter = _chart.map().getBounds(); //!!!ADDING THIS CORRECTLY CHANGES COUNT WHEN HOME BUTTON IS CLICKED
+                //console.log("filter: ", filter)
+                //console.log("calling dc.events.trigger in zoomFilter fn")
+                //END CN CHANGE
+       
                 dc.events.trigger(function () {
                     _chart.filter(null);
                     if (filter) {
@@ -559,7 +592,7 @@
                 });
             } else if (_chart.filter() && (e.type === 'click' ||
                                            (_markerList.indexOf(_chart.filter()) !== -1 &&
-                                            !_chart.map().getBounds().contains(_markerList[_chart.filter()].getLatLng())))) {
+                                            !_chart.map().getBounds().contains(_markerList[_chart.filter()].getLatLng())))) {                
                 dc.events.trigger(function () {
                     _chart.filter(null);
                     if (_renderPopup) {
@@ -594,11 +627,63 @@
 
             _disableFitOnRedraw = true;
             var filter = e.target.key;
+            console.log("filter in selectFilter: ", filter)
+
             dc.events.trigger(function () {
                 _chart.filter(filter);
+                console.log("chartGroup in selectFilter: ", _chart.chartGroup())
                 dc.redrawAll(_chart.chartGroup());
             });
         };
+
+        //START
+        var my_selectFilter = function (e) {
+            if (!e.target) {
+                return;
+            }
+            var filter = e.target.key;
+            console.log("filter in my_selectFilter: ", filter)
+            console.log("id in my_selectFilter: ", filter[2])
+
+            //console.log("_markerList: ", _markerList)
+
+            //console.log("d3.select:", d3.select(".leaflet-marker-icon.leaflet-zoom-animated.leaflet-clickable"))
+
+            d3.select(".leaflet-marker-icon.leaflet-zoom-animated.leaflet-clickable")
+             .attr("id", "id-" + filter[2]);
+
+            // clear any previously bolded rows in dcTable
+            d3.selectAll(".dc-table-row")
+             .style("font-weight", "normal");
+
+            // find id in table column 0 that matches clicked marker id
+            d3.selectAll(".dc-table-column._0")
+              .text(function (d, i){
+                  if (parseInt(d.Id) == filter[2]) {
+                    // console.log("this: ", this)
+                    // console.log("parentNode: ", this.parentNode)
+                    //console.log("parentNode class: ", this.parentNode.className)
+                    console.log("d3 select: ", d3.select(this.parentNode))
+                    
+                    // select entire row beloging to marker id and bold the text
+                    d3.select(this.parentNode)
+                      .style("font-weight", "bold");
+                  }
+                // console.log("d: ", d); 
+                // console.log("filter[2]: ", filter[2])
+               return d.Id;
+             });
+             
+                
+
+            //does not do anything
+            // dc.events.trigger(function () {
+            //     _chart.filter(filter);
+            //     dc.redrawAll(_chart.chartGroup());
+            // });
+          
+        };
+        //END
 
         return _chart.anchor(parent, chartGroup);
     };
@@ -674,7 +759,7 @@ dc.leafletLegend = function () {
         return this;
     };
 
-    function _LegendClass() {
+    var _LegendClass = function () {
         return L.Control.extend({
             options: {position: _position},
             onAdd: function (map) {
@@ -712,7 +797,7 @@ dc.leafletLegend = function () {
                 }
             }
         });
-    }
+    };
 
     _legend.LegendClass = function (LegendClass) {
         if (!arguments.length) {

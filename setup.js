@@ -1,12 +1,6 @@
-
 //====================================================================
-var map;
-var mapMaxZoom = 6;
-
-var markers = [] ;
-var markerGroup ;
-
-var grat;
+var theMap;
+var mapMaxZoom = 8;
 
 var xf;
 var depthDim;
@@ -18,55 +12,68 @@ var archiveGroup;
 var materialDim;
 var materialGroup;
 
-var  Ice_color = "#008cb2";
-var  Lake_color = "#314f6f";
-var  Ocean_color = "#81a6d3";
-var  Speleothem_color = "#afa393";
-var  Tree_color = "#568e14";
-var  Carbonate_color = "#ff0000";
-var  NonCarbonate_color = "#903373";
-var  Cellulose_color = Tree_color;
-var  Coral_color = "#ff7f50";
-var  PlanktonicForaminifera_color = Ocean_color;
-var  BenthicForaminifera_color = Ocean_color;
-var  Unkown_color = "#FF4400";
-var  Others_color = "#FF4400";
-
-myIcon = L.icon({
-    iconUrl: 'LSCE_Icon.png',
-    iconSize: [20, 20], 
-    iconAnchor: [10, 0] 
-});
+var Ice_color = "#008cb2";
+var Lake_color = "#314f6f";
+var Ocean_color = "#81a6d3";
+var Speleothem_color = "#afa393";
+var Tree_color = "#568e14";
+var Carbonate_color = "#ff0000";
+var NonCarbonate_color = "#903373";
+var Cellulose_color = Tree_color;
+var Coral_color = "#ff7f50";
+var PlanktonicForaminifera_color = Ocean_color;
+var BenthicForaminifera_color = Ocean_color;
+var Unkown_color = "#FF4400";
+var Others_color = "#FF4400";
 
 //====================================================================
-function init() {
+$(document).ready(function() {
 
-//-----------------------------------------
-d3.tsv("proxies_select.tsv", function(data) {
-//d3.tsv("proxies.tsv", function(data) {
-  data.forEach(function(d) {
-        d.Longitude = +d.Longitude;
-        d.Latitude = +d.Latitude;
-        d.Depth = +d.Depth;
-        d.OldestDate = +d.OldestDate;
-        d.RecentDate = +d.RecentDate;
+  //d3.tsv("proxies_select.tsv", function(data) {
+  d3.tsv("proxies.tsv", function(data) {
+    data.forEach(function(d) {
+          d.Longitude = +d.Longitude;
+          d.Latitude = +d.Latitude;
+          d.Depth = +d.Depth;
+          d.OldestDate = +d.OldestDate;
+          d.RecentDate = +d.RecentDate;
+          d.DOI = (d.DOI.length ==  0) ? "Not available" : d.DOI		// to handle empty DOI
+  
+  	// Limit latitudes according to latitude map range (-85:85)
+          if (d.Latitude < -85) d.Latitude = -85;
+          if (d.Latitude > 85) d.Latitude = 85;
+    });
+  
+    initCrossfilter(data);
+  
+    var theMap = mapChart.map();
+    new L.graticule({ interval: 10, style: { color: '#333', weight: 0.5, opacity: 1. } }).addTo(theMap);
+    new L.Control.MousePosition({lngFirst: true}).addTo(theMap);
+    new L.Control.zoomHome({homeZoom: 2, homeCoordinates: [45, -20]}).addTo(theMap);
+  
+    mapmadeUrl = 'http://services.arcgisonline.com/ArcGIS/rest/services/Ocean_Basemap/MapServer/tile/{z}/{y}/{x}',
+    mapmade = new L.TileLayer(mapmadeUrl, { maxZoom: mapMaxZoom+1});
+    new L.Control.MiniMap(mapmade, { toggleDisplay: true, zoomLevelOffset: -4 }).addTo(theMap);
 
-	// Limit latitudes according to latitude map range (-85:85)
-        if (d.Latitude < -85) d.Latitude = -85;
-        if (d.Latitude > 85) d.Latitude = 85;
+    $('.leaflet-control-zoomhome-home')[0].click();
+
+    // d3.selectAll('.leaflet-marker-icon').on('click', function() {
+    // });
+
+//    $('#chart-map').on('click', '.leaflet-marker-icon', function() {
+//	      a=$('.leaflet-popup-content').text();
+//	      console.log(a);
+//	      tableIdDimension.filter(141);
+//	      dc.redrawAll();
+//    });
+
+  $('#chart-map').on('click', function() {
+    console.log("clicked map")
+    });
+
   });
 
-  initCrossfilter(data);
-
-  // Render the total.
-  d3.selectAll("#total").text(xf.size());
-
-//-----------------------------------------
 });
-
-}
-
-
 
 //====================================================================
 function initCrossfilter(data) {
@@ -113,57 +120,57 @@ function initCrossfilter(data) {
   materialGroup = materialDim.group();
 
   //-----------------------------------
-  // mapDim = xf.dimension(function(d) { return [d.Latitude, d.Longitude]; });
-  // mapGroup = mapDim.group();
-
-  //add Id to group for map popup window
-  mapDimPopup = xf.dimension(function(d) { return [d.Latitude, d.Longitude, d.Id]; });
-  mapGroupPopup = mapDimPopup.group();
+  mapDim = xf.dimension(function(d) { return [d.Latitude, d.Longitude, d.Id]; });
+  mapGroup = mapDim.group();
 
   //-----------------------------------
-  tableIdDimension = xf.dimension(function(d) {
-    return +d.Id;
-  });
+  tableIdDimension = xf.dimension(function(d) { return +d.Id; });
 
   //-----------------------------------
+  var archiveColors = d3.scale.ordinal()
+        .domain(["Ice", "Lake", "Ocean", "Speleothem", "Tree"])
+   	.range([Ice_color, Lake_color, Ocean_color, Speleothem_color, Tree_color]);
+
   mapChart  = dc.leafletMarkerChart("#chart-map");
 
   mapChart
       .width(1000)
       .height(300)
-      .dimension(mapDimPopup)
-      .group(mapGroupPopup)
-      .center([0,0])
-      .mapOptions({maxZoom: mapMaxZoom})
-      .zoom(1)
+      .dimension(mapDim)
+      .group(mapGroup)
+      .mapOptions({maxZoom: mapMaxZoom, zoomControl: false})
+      .center([45, -19])    // slightly different than zoomHome to have a info updated when triggered
+      .zoom(2)         
+      .fitOnRender(false)
       .filterByArea(true)
       .cluster(true) 
       .clusterOptions({maxClusterRadius: 50, showCoverageOnHover: false, spiderfyOnMaxZoom: true})
-      .icon(function() {
-		    return myIcon;
-      })
-      .popup(function (d) {
-        
-        id = d.key[2];
-        // console.log("d.key[2]: ", id)
-        // console.log("data: ", data)
-        // console.log("data[id]: ", data[id - 1])
-        // console.log("data[id].Id: ", data[id - 1].Id)
-        // console.log("mapDim.top: ", mapDim.top(Infinity))
-        // console.log("mapDimPopup.top: ", mapDimPopup.top(Infinity))
-
-    		return  "Id: " + "<b>" + data[id - 1].Id + "</b></br>"
-    		+ "Position: " + "<b>" + data[id - 1].Longitude.toFixed(2) + "°E</b>, <b>" + data[id - 1].Latitude.toFixed(2) + "°N</b></br>"
-    		+ "Depth (m): " + "<span style='color: " + Ocean_color + ";'><b>" +  data[id - 1].Depth.toFixed(2) + "</b></span></br>"
-    		+ "Date (ka): " + "<span style='color: #C9840B;'>" + "from <b>" + data[id - 1].RecentDate.toFixed(2) + "</b> to <b>" + data[id - 1].OldestDate.toFixed(2) + "</b></span></br>"
-    		+ "Archive: " + "<b>" + data[id - 1].Archive + "</b></br>"
-    		+ "Material: " + "<b>" + data[id - 1].Material + "</b></br>";
+      .icon(function(d) {
+    		id = d.key[2] -1;
+    		if (data[id].Archive == "Ice") 
+    			icon=L.icon({ iconUrl: 'marker_Ice.png', iconSize: [32,32], iconAnchor: [16,32], popupAnchor: [0,-20] });
+    		else if (data[id].Archive == "Lake") 
+    			icon=L.icon({ iconUrl: 'marker_Lake.png', iconSize: [32,32], iconAnchor: [16,32], popupAnchor: [0,-20] });
+    		else if (data[id].Archive == "Ocean") 
+    			icon=L.icon({ iconUrl: 'marker_Ocean.png', iconSize: [32,32], iconAnchor: [16,32], popupAnchor: [0,-20] });
+    		else if (data[id].Archive == "Speleothem") 
+    			icon=L.icon({ iconUrl: 'marker_Speleothem.png', iconSize: [32,32], iconAnchor: [16,32], popupAnchor: [0,-20] });
+    		else if (data[id].Archive == "Tree") 
+    			icon=L.icon({ iconUrl: 'marker_Tree.png', iconSize: [32,32], iconAnchor: [16,32], popupAnchor: [0,-20] });
+    		return icon;
        })
-      .label(function (d) {
-        console.log("label d: ", d)
-      });
+      .title(function() {})
+      .popup(function(d) {
+		    id = d.key[2] -1;            
 
-
+    		return  "Id: " + "<b>" + data[id].Id + "</b></br>"
+    			+ "Position: " + "<b>" + data[id].Longitude.toFixed(2) + "°E</b>, <b>" + data[id].Latitude.toFixed(2) + "°N</b></br>"
+    			+ "Depth (m): " + "<span style='color: " + Ocean_color + ";'><b>" +  data[id].Depth.toFixed(2) + "</b></span></br>"
+    			+ "Date (ka): " + "<span style='color: #C9840B;'>" + "from <b>" + data[id].RecentDate.toFixed(2) + "</b> to <b>" + data[id].OldestDate.toFixed(2) + "</b></span></br>"
+    			+ "Archive: " + "<b>" + data[id].Archive + "</b></br>"
+    			+ "Material: " + "<b>" + data[id].Material + "</b></br>";
+       })
+       .popupOnHover(true);
 
   //-----------------------------------
   depthChart  = dc.barChart("#chart-depth");
@@ -176,7 +183,6 @@ function initCrossfilter(data) {
     .elasticY(true)
     .dimension(depthDim)
     .group(depthGroup)
-    //.on("preRedraw", update0)
     .x(d3.scale.linear().domain(depthRange))
     .xUnits(dc.units.fp.precision(depthBinWidth))
     .round(function(d) {return depthBinWidth*Math.floor(d/depthBinWidth)})
@@ -190,10 +196,6 @@ function initCrossfilter(data) {
   yAxis_depthChart.tickFormat(d3.format("d")).tickSubdivide(0);
 
   //-----------------------------------
-  var archiveColors = d3.scale.ordinal()
-        .domain(["Ice", "Lake", "Ocean", "Speleothem", "Tree"])
-   	.range([Ice_color, Lake_color, Ocean_color, Speleothem_color, Tree_color]);
-
   ageChart  = dc.scatterPlot("#chart-age");
 
   ageChart
@@ -204,7 +206,6 @@ function initCrossfilter(data) {
     .group(ageGroup)
     .xAxisLabel("Most recent age")
     .yAxisLabel("Oldest age")
-    //.on("preRedraw", update0)
     //.mouseZoomable(true)
     .x(d3.scale.linear().domain(age1Range))
     .y(d3.scale.linear().domain(age2Range))
@@ -212,19 +213,19 @@ function initCrossfilter(data) {
     .renderHorizontalGridLines(true)
     .renderVerticalGridLines(true)
     .symbolSize(8)
-    .highlightedSize(8)
+    .excludedSize(4)
     .existenceAccessor(function(d) { return d.value > 0 ; })
     .colorAccessor(function (d) { return d.key[2]; })
     .colors(archiveColors)
     .filterHandler(function(dim, filters) {
-  	if(!filters || !filters.length)
+  	  if(!filters || !filters.length)
     		dim.filter(null);
     	else {
       	// assume it's one RangedTwoDimensionalFilter
-    	dim.filterFunction(function(d) {
-      		return filters[0].isFiltered([d[0],d[1]]);
-      		})
-    	}
+    	  dim.filterFunction(function(d) {
+         return filters[0].isFiltered([d[0],d[1]]);
+     	  })
+      }
     });
     // https://jsfiddle.net/gordonwoodhull/c593ehh7/5/
     // .colors("#ff0000");
@@ -243,7 +244,6 @@ function initCrossfilter(data) {
     .margins({top: 10, right: 10, bottom: 30, left: 10})	
     .dimension(archiveDim)
     .group(archiveGroup)
-    //.on("preRedraw", update0)
     .colors(archiveColors)
     .elasticX(true)
     .gap(2)
@@ -275,28 +275,41 @@ function initCrossfilter(data) {
     .margins({top: 10, right: 10, bottom: 30, left: 10})	
     .dimension(materialDim)
     .group(materialGroup)
-    //.on("preRedraw", update0)
     .colors(materialColors) 
     .elasticX(true)
     .gap(2)
     .ordering(function (d) { return newOrderMaterial[d.key]; })
     .xAxis().ticks(4);
 
-  //-----------------------------------
-  dataTable = dc.dataTable("#dcTable");
+//-----------------------------------
+  dataCount = dc.dataCount('#chart-count');
+
+  dataCount 
+        .dimension(xf)
+        .group(xf.groupAll())
+        .html({
+            some: '<strong>%filter-count</strong> selected out of <strong>%total-count</strong> records' +
+                ' | <a href=\'javascript:dc.filterAll(); dc.redrawAll();\'>Reset All</a>',
+            all: 'All records selected. Please click on the graph to apply filters.'
+        });
+
+//-----------------------------------
+  dataTable = dc.dataTable("#chart-table");
+
+  format1 = d3.format(".0f");
+  format2 = d3.format(".2f");
 
   dataTable
-    .width(1060)
-    .height(800)
     .dimension(tableIdDimension)
-    .group(function(d) { return "Proxies Table"})
-    .size(6)
-    //.size(csv.length) //display all data
+    .group(function(d) {})
+    .showGroups(false)
+    .size(100)
+    //.size(xf.size()) //display all data
     .columns([
       function(d) { return d.Id; },
-      function(d) { return d.Depth; },
-      function(d) { return d.RecentDate; },
-      function(d) { return d.OldestDate; },
+      function(d) { return format1(d.Depth); },
+      function(d) { return format2(d.RecentDate); },
+      function(d) { return format2(d.OldestDate); },
       function(d) { return d.Archive; },
       function(d) { return d.Material; },
       function(d) { return d.DOI; },
@@ -309,80 +322,59 @@ function initCrossfilter(data) {
 
   // Add ellipses for long entries and make DOI a hyperlink to google scholar
   //http://stackoverflow.com/questions/5474871/html-how-can-i-show-tooltip-only-when-ellipsis-is-activated
-  $('#dcTable').on('mouseover', '.dc-table-column', function() {      
-
+  $('#chart-table').on('mouseover', '.dc-table-column', function() {      
     var $this = $(this);
-
-    // always displays popup for DOI and Reference columns
-    // if (d3.select(this).attr("class") === "dc-table-column _7" || 
-    //     d3.select(this).attr("class") === "dc-table-column _6") {
-    //   $this.attr('title', $this.text());
-    // }
-
     // displays popup only if text does not fit in col width
     if (this.offsetWidth < this.scrollWidth) {
       $this.attr('title', $this.text());
     }
 
     // change DOI colour to blue to indicate hyperlink
-    if (d3.select(this).attr("class") === "dc-table-column _6") {
+    if (d3.select(this).attr("class") == "dc-table-column _6") {
       d3.select(this).style("color", "#0645AD");
     }
   })
 
   // Reset DOI colour to default
-  $('#dcTable').on('mouseout', '.dc-table-column', function() {
-    if (d3.select(this).attr("class") === "dc-table-column _6") {
+  $('#chart-table').on('mouseout', '.dc-table-column', function() {
+    if (d3.select(this).attr("class") == "dc-table-column _6") {
       d3.select(this).style("color", "#333");
     }
   })
 
+  DOI_link = false;
   // Make DOI a hyperlink to google scholar
-  $('#dcTable').on('click', '.dc-table-column', function() {
-    if (d3.select(this).attr("class") === "dc-table-column _6") {
-      console.log("DOI", d3.select(this).text())
+  $('#chart-table').on('click', '.dc-table-column', function() {
+    if (d3.select(this).attr("class") == "dc-table-column _6") {
+      DOI_link = true;
       window.open("https://scholar.google.fr/scholar?q=" + d3.select(this).text());
-    }
+    } else
+      DOI_link = false;
   })
 
-  // Bind dcTable to other dc charts when row is clicked
+  // Bind chart-table to other dc charts when row is clicked
   //http://stackoverflow.com/questions/21113513/reorder-datatable-by-column/21116676#21116676
-  $('#dcTable').on('click', '.dc-table-row', function() {
-    var id = d3.select(this).select(".dc-table-column._0").text();
-
-    tableIdDimension.filter(id);
-
-    //console.log("tableIdDimension: ", tableIdDimension.top(Infinity))
-    dataTable.dimension(tableIdDimension) 
-    dataTable.redraw();
-    dc.redrawAll();
-
-    // make reset link visible
-    d3.select("#resetTableLink").style("display", "inline")
-
+  $('#chart-table').on('click', '.dc-table-row', function() {
+    if (! DOI_link && d3.select(this).attr("class") != "dc-table-column _6") {		// filter only if not clicked on DOI
+    	var id = d3.select(this).select(".dc-table-column._0").text();
+    	tableIdDimension.filter(id);
+    	dc.redrawAll();
+    	// make reset link visible
+    	d3.select("#resetTableLink").style("display", "inline")
+    }
   });
-
 
   //-----------------------------------
   dc.renderAll();
 
 }
 
-
-
-//====================================================================
-// reset dcTable
+// reset chart-table
 function resetTable() {
   tableIdDimension.dispose(); //important! table dim will not be updated without it
-  tableIdDimension = xf.dimension(function(d) {
-    return +d.Id;
-  });
-
-  dataTable.dimension(tableIdDimension) 
-  dataTable.redraw();
   dc.redrawAll();
-
   // make reset link invisible
-  d3.select("#resetTableLink").style("display", "none")
-
+  d3.select("#resetTableLink").style("display", "none");
 }
+
+//====================================================================
