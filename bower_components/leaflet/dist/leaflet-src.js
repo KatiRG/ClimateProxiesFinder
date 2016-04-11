@@ -3655,7 +3655,6 @@ L.Marker = L.Class.extend({
 	},
 
 	_initInteraction: function () {
-
 		if (!this.options.clickable) { return; }
 
 		// TODO refactor into something shared with Map/Path/etc. to DRY it up
@@ -3663,7 +3662,19 @@ L.Marker = L.Class.extend({
 		var icon = this._icon,
 		    events = ['dblclick', 'mousedown', 'mouseover', 'mouseout', 'contextmenu'];
 
-		L.DomUtil.addClass(icon, 'leaflet-clickable');
+		//CN EDITS START
+		// add marker id to img class (activated only on markers, not clusters)
+		if (this.key) {			
+			img_id = 'leaflet-clickable ' + "id-" + this.key[2];
+			orig_img = this._icon.attributes[0].nodeValue;
+			
+			//add marker id and original png file name to img tag
+			L.DomUtil.addClass(icon,  img_id);
+			L.DomUtil.addClass(icon,  orig_img);
+		} else L.DomUtil.addClass(icon, 'leaflet-clickable');
+		//END    
+
+		//L.DomUtil.addClass(icon, 'leaflet-clickable'); //CN
 		L.DomEvent.on(icon, 'click', this._onMouseClick, this);
 		L.DomEvent.on(icon, 'keypress', this._onKeyPress, this);
 
@@ -4914,7 +4925,7 @@ L.Path = L.Browser.svg || !L.Browser.vml ? L.Path : L.Path.extend({
 	}()),
 
 	_initPath: function () {
-		var container = this._container = this._createElement('shape');
+		var container = this._container = this._createElement('shape');		
 
 		L.DomUtil.addClass(container, 'leaflet-vml-shape' +
 			(this.options.className ? ' ' + this.options.className : ''));

@@ -57,20 +57,13 @@ $(document).ready(function() {
 
     $('.leaflet-control-zoomhome-home')[0].click();
 
-    // d3.selectAll('.leaflet-marker-icon').on('click', function() {
-    // });
-
-//    $('#chart-map').on('click', '.leaflet-marker-icon', function() {
-//	      a=$('.leaflet-popup-content').text();
-//	      console.log(a);
-//	      tableIdDimension.filter(141);
-//	      dc.redrawAll();
-//    });
-
-  $('#chart-map').on('click', function() {
-    console.log("clicked map")
+    // Clear any table highlights if map is clicked
+    $('#chart-map').on('click', function() {
+      console.log("clicked map")
+      d3.selectAll(".dc-table-row")
+        .style("font-weight", "normal");
     });
-
+   
   });
 
 });
@@ -145,7 +138,7 @@ function initCrossfilter(data) {
       .filterByArea(true)
       .cluster(true) 
       .clusterOptions({maxClusterRadius: 50, showCoverageOnHover: false, spiderfyOnMaxZoom: true})
-      .icon(function(d) {
+      .icon(function(d) {        
     		id = d.key[2] -1;
     		if (data[id].Archive == "Ice") 
     			icon=L.icon({ iconUrl: 'marker_Ice.png', iconSize: [32,32], iconAnchor: [16,32], popupAnchor: [0,-20] });
