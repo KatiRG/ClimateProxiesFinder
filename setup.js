@@ -66,6 +66,10 @@ $(document).ready(function() {
 	      console.log("aaaa");
     });
 
+  $('#chart-map').on('click', function() {
+    console.log("clicked map")
+    });
+
   });
 
 });

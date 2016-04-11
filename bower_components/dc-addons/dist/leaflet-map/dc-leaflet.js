@@ -643,13 +643,42 @@
             }
             var filter = e.target.key;
             console.log("filter in my_selectFilter: ", filter)
-            console.log("id in my_selectFilter: ", filter[2])            
+            console.log("id in my_selectFilter: ", filter[2])    
+
+            //g nodes for spyder lines: leaflet-objects-pane -> leaflet-overlay-pane -> svg class="leaflet-zoom-animated"
+
+            // Change marker icon to selected marker png
+            d3.select(".id-" + filter[2]).attr("src", "marker_Tree.png"); //REPLACE TREE MARKER WITH SELECTED PNG
+
+            // clear any previously bolded rows in dcTable
+            d3.selectAll(".dc-table-row")
+             .style("font-weight", "normal");
+
+            // find id in table column 0 that matches clicked marker id
+            d3.selectAll(".dc-table-column._0")
+              .text(function (d, i){
+                  if (parseInt(d.Id) == filter[2]) {
+                    // console.log("this: ", this)
+                    // console.log("parentNode: ", this.parentNode)
+                    //console.log("parentNode class: ", this.parentNode.className)
+                    console.log("d3 select: ", d3.select(this.parentNode))
+                    
+                    // select entire row beloging to marker id and bold the text
+                    d3.select(this.parentNode)
+                      .style("font-weight", "bold");
+                  }
+                // console.log("d: ", d); 
+                // console.log("filter[2]: ", filter[2])
+               return d.Id;
+             });
+             
+                
 
             //does not do anything
-            dc.events.trigger(function () {
-                _chart.filter(filter);
-                dc.redrawAll(_chart.chartGroup());
-            });
+            // dc.events.trigger(function () {
+            //     _chart.filter(filter);
+            //     dc.redrawAll(_chart.chartGroup());
+            // });
           
         };
         //END
