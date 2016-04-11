@@ -548,6 +548,8 @@
             //START
             if (_chart.brushOn()) {
                 marker.on('click',my_selectFilter);
+                marker.on('mouseover',my_highlightMarker);
+                marker.on('mouseout',my_restoreMarker);
             }
            //END 
 
@@ -637,6 +639,66 @@
         };
 
         //START
+        // Handles mouseover
+        var my_highlightMarker = function (e) {            
+            if (!e.target) {
+                return;
+            }
+            var filter = e.target.key;
+            var marker_id = filter[2];
+
+            // Highlight marker icon
+            if (d3.select(".id-" + marker_id).classed("selected") === false) {
+                d3.select(".id-" + marker_id)
+                  .attr("src", "marker_Tree.png") //REPLACE TREE MARKER WITH SELECTED PNG
+                  .classed("selected", true);
+            }
+
+            // clear any previously bolded rows in dcTable
+            d3.selectAll(".dc-table-row")
+             .style("font-weight", "normal");
+
+            // find id in table column 0 that matches clicked marker id
+            d3.selectAll(".dc-table-column._0")
+              .text(function (d, i){
+                if (parseInt(d.Id) == marker_id) {
+                    // select entire row beloging to marker id and bold the text
+                    d3.select(this.parentNode)
+                      .style("font-weight", "bold");
+                  }
+                return d.Id;
+             });
+
+        }
+
+        // Handles mouseout
+        var my_restoreMarker = function (e) {            
+            if (!e.target) {
+                return;
+            }
+            var filter = e.target.key;
+            var marker_id = filter[2];
+
+            // Un-highlight marker icon
+            if (d3.select(".id-" + marker_id).classed("selected") === true) {
+               // Retrieve orig png stored in img class
+                var orig_png = d3.select(".id-" + marker_id)
+                                       .attr("class")
+                                       .split("leaflet-marker-icon leaflet-zoom-animated leaflet-clickable id-" + marker_id + " ")
+                                       .pop()
+                                       .replace(" selected", "");
+
+                d3.select(".id-" + marker_id)
+                  .attr("src", orig_png) //switch back to orig png
+                  .classed("selected", false);
+            }  
+
+            // clear any previously bolded rows in dcTable
+            d3.selectAll(".dc-table-row")
+              .style("font-weight", "normal");
+        }
+
+        // Handles mouse click
         var my_selectFilter = function (e) {
             if (!e.target) {
                 return;
