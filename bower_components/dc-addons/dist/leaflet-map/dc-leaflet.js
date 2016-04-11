@@ -547,7 +547,7 @@
 
             //START
             if (_chart.brushOn()) {
-                marker.on('click',my_selectFilter);
+                //marker.on('click',my_selectFilter);
                 marker.on('mouseover',my_highlightMarker);
                 marker.on('mouseout',my_restoreMarker);
             }
@@ -638,7 +638,7 @@
             });
         };
 
-        //START
+        //CN EDITS START
         // Handles mouseover
         var my_highlightMarker = function (e) {            
             if (!e.target) {
@@ -707,43 +707,64 @@
             console.log("filter in my_selectFilter: ", filter)
             console.log("id in my_selectFilter: ", filter[2])
 
-            var marker_id = filter[2];            
+            var marker_id = filter[2];
+
+            // clear any previously bolded rows in dcTable
+            console.log("clearing table")
+            d3.selectAll(".dc-table-row")
+             .style("font-weight", "normal");
+
 
             //g nodes for spyder lines: leaflet-objects-pane -> leaflet-overlay-pane -> svg class="leaflet-zoom-animated"
 
             // Toggle between highlighted and original marker icon
-            if (d3.select(".id-" + marker_id).classed("selected") === false) {
+            if (d3.select(".id-" + marker_id).classed("clicked") === false) {
+                // Clear any previously clicked markers
+                if (d3.selectAll(".clicked").size() != 0) {
+                    var restore_png = d3.selectAll(".clicked").attr("class").split(" ");
+                    console.log("restore_png: ", restore_png[3])
+                    console.log("d3 restore: ", d3.select("." + restore_png[3]))
+
+                    if (marker_id != restore_png[3]) {
+                        console.log("marker_id: ", marker_id)
+                        d3.select("." + restore_png[3])
+                          .attr("src", restore_png[4])
+                          .classed("clicked", false);
+                      }
+                }
+
+                // Highlight marker
                 d3.select(".id-" + marker_id)
                   .attr("src", "marker_Tree.png") //REPLACE TREE MARKER WITH SELECTED PNG
-                  .classed("selected", true);
+                  .classed("clicked", true);
+
+                // Find id in table column 0 that matches clicked marker id
+                d3.selectAll(".dc-table-column._0")
+                  .text(function (d, i){
+                    if (parseInt(d.Id) == marker_id) {
+                        // select entire row beloging to marker id and bold the text
+                        d3.select(this.parentNode)
+                          .style("font-weight", "bold");
+                      }
+                    return d.Id;
+                  });  
             } else {
                 // Retrieve orig png stored in img class
                 var orig_png = d3.select(".id-" + marker_id)
                                        .attr("class")
                                        .split("leaflet-marker-icon leaflet-zoom-animated leaflet-clickable id-" + marker_id + " ")
                                        .pop()
-                                       .replace(" selected", "");
-
+                                       .replace(" clicked", "");
+                // Restore orig png
                 d3.select(".id-" + marker_id)
-                  .attr("src", orig_png) //switch back to orig png
-                  .classed("selected", false);
+                  .attr("src", orig_png)
+                  .classed("clicked", false);
+
+                // // clear bolded row in dcTable
+                // d3.selectAll(".dc-table-row")
+                //  .style("font-weight", "normal");
+  
             }
-           
-
-            // clear any previously bolded rows in dcTable
-            d3.selectAll(".dc-table-row")
-             .style("font-weight", "normal");
-
-            // find id in table column 0 that matches clicked marker id
-            d3.selectAll(".dc-table-column._0")
-              .text(function (d, i){
-                if (parseInt(d.Id) == marker_id) {
-                    // select entire row beloging to marker id and bold the text
-                    d3.select(this.parentNode)
-                      .style("font-weight", "bold");
-                  }
-                return d.Id;
-             });
              
         };
         //END
