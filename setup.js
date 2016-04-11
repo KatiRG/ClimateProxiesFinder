@@ -57,12 +57,12 @@ $(document).ready(function() {
 
     $('.leaflet-control-zoomhome-home')[0].click();
 
-    // Clear any table highlights if map is clicked
-    $('#chart-map').on('click', function() {
-      console.log("clicked map")
-      d3.selectAll(".dc-table-row")
-        .style("font-weight", "normal");
-    });
+    // // Clear any table highlights if map is clicked
+    // $('#chart-map').on('click', function() {
+    //   console.log("clicked map")
+    //   d3.selectAll(".dc-table-row")
+    //     .style("font-weight", "normal");
+    // });
    
   });
 
