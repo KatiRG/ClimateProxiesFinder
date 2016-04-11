@@ -643,12 +643,30 @@
             }
             var filter = e.target.key;
             console.log("filter in my_selectFilter: ", filter)
-            console.log("id in my_selectFilter: ", filter[2])    
+            console.log("id in my_selectFilter: ", filter[2])
+
+            var marker_id = filter[2];            
 
             //g nodes for spyder lines: leaflet-objects-pane -> leaflet-overlay-pane -> svg class="leaflet-zoom-animated"
 
-            // Change marker icon to selected marker png
-            d3.select(".id-" + filter[2]).attr("src", "marker_Tree.png"); //REPLACE TREE MARKER WITH SELECTED PNG
+            // Toggle between highlighted and original marker icon
+            if (d3.select(".id-" + marker_id).classed("selected") === false) {
+                d3.select(".id-" + marker_id)
+                  .attr("src", "marker_Tree.png") //REPLACE TREE MARKER WITH SELECTED PNG
+                  .classed("selected", true);
+            } else {
+                // Retrieve orig png stored in img class
+                var orig_png = d3.select(".id-" + marker_id)
+                                       .attr("class")
+                                       .split("leaflet-marker-icon leaflet-zoom-animated leaflet-clickable id-" + marker_id + " ")
+                                       .pop()
+                                       .replace(" selected", "");
+
+                d3.select(".id-" + marker_id)
+                  .attr("src", orig_png) //switch back to orig png
+                  .classed("selected", false);
+            }
+           
 
             // clear any previously bolded rows in dcTable
             d3.selectAll(".dc-table-row")
@@ -657,29 +675,14 @@
             // find id in table column 0 that matches clicked marker id
             d3.selectAll(".dc-table-column._0")
               .text(function (d, i){
-                  if (parseInt(d.Id) == filter[2]) {
-                    // console.log("this: ", this)
-                    // console.log("parentNode: ", this.parentNode)
-                    //console.log("parentNode class: ", this.parentNode.className)
-                    console.log("d3 select: ", d3.select(this.parentNode))
-                    
+                if (parseInt(d.Id) == marker_id) {
                     // select entire row beloging to marker id and bold the text
                     d3.select(this.parentNode)
                       .style("font-weight", "bold");
                   }
-                // console.log("d: ", d); 
-                // console.log("filter[2]: ", filter[2])
-               return d.Id;
+                return d.Id;
              });
              
-                
-
-            //does not do anything
-            // dc.events.trigger(function () {
-            //     _chart.filter(filter);
-            //     dc.redrawAll(_chart.chartGroup());
-            // });
-          
         };
         //END
 

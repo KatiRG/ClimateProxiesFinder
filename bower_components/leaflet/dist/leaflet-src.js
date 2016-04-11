@@ -3663,15 +3663,14 @@ L.Marker = L.Class.extend({
 		    events = ['dblclick', 'mousedown', 'mouseover', 'mouseout', 'contextmenu'];
 
 		//CN EDITS START
-		if (this.key) {
-			console.log("_initInteraction this: ", this)
-			console.log("_initInteraction this.key: ", this.key)
-			console.log("icon: ", this._icon.attributes)
-			console.log("icon length: ", this._icon.attributes.length)
+		// add marker id to img class (activated only on markers, not clusters)
+		if (this.key) {			
 			img_id = 'leaflet-clickable ' + "id-" + this.key[2];
-			console.log("img_id: ", img_id)	
-
+			orig_img = this._icon.attributes[0].nodeValue;
+			
+			//add marker id and original png file name to img tag
 			L.DomUtil.addClass(icon,  img_id);
+			L.DomUtil.addClass(icon,  orig_img);
 		} else L.DomUtil.addClass(icon, 'leaflet-clickable');
 		//END    
 

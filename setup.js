@@ -56,20 +56,7 @@ $(document).ready(function() {
     new L.Control.MiniMap(mapmade, { toggleDisplay: true, zoomLevelOffset: -4 }).addTo(theMap);
 
     $('.leaflet-control-zoomhome-home')[0].click();
-
-    d3.selection.prototype.trigger = function(evtName, data) {  
-  	this.on(evtName)(data);
-    }
-
-    d3.selectAll('.leaflet-marker-icon').on('click', function() {
-    //$('.leaflet-marker-icon').on('click', function() {
-	      console.log("aaaa");
-    });
-
-  $('#chart-map').on('click', function() {
-    console.log("clicked map")
-    });
-
+   
   });
 
 });
@@ -144,7 +131,7 @@ function initCrossfilter(data) {
       .filterByArea(true)
       .cluster(true) 
       .clusterOptions({maxClusterRadius: 50, showCoverageOnHover: false, spiderfyOnMaxZoom: true})
-      .icon(function(d) {
+      .icon(function(d) {        
     		id = d.key[2] -1;
     		if (data[id].Archive == "Ice") 
     			icon=L.icon({ iconUrl: 'marker_Ice.png', iconSize: [32,32], iconAnchor: [16,32], popupAnchor: [0,-20] });
