@@ -138,20 +138,20 @@ function initCrossfilter(data) {
       .filterByArea(true)
       .cluster(true) 
       .clusterOptions({maxClusterRadius: 50, showCoverageOnHover: false, spiderfyOnMaxZoom: true})
-      .icon(function(d) {        
-    		id = d.key[2] -1;
-    		if (data[id].Archive == "Ice") 
-    			icon=L.icon({ iconUrl: 'marker_Ice.png', iconSize: [32,32], iconAnchor: [16,32], popupAnchor: [0,-20] });
-    		else if (data[id].Archive == "Lake") 
-    			icon=L.icon({ iconUrl: 'marker_Lake.png', iconSize: [32,32], iconAnchor: [16,32], popupAnchor: [0,-20] });
-    		else if (data[id].Archive == "Ocean") 
-    			icon=L.icon({ iconUrl: 'marker_Ocean.png', iconSize: [32,32], iconAnchor: [16,32], popupAnchor: [0,-20] });
-    		else if (data[id].Archive == "Speleothem") 
-    			icon=L.icon({ iconUrl: 'marker_Speleothem.png', iconSize: [32,32], iconAnchor: [16,32], popupAnchor: [0,-20] });
-    		else if (data[id].Archive == "Tree") 
-    			icon=L.icon({ iconUrl: 'marker_Tree.png', iconSize: [32,32], iconAnchor: [16,32], popupAnchor: [0,-20] });
-    		return icon;
-       })
+      // .icon(function(d) {        
+    		// id = d.key[2] -1;
+    		// if (data[id].Archive == "Ice") 
+    		// 	icon=L.icon({ iconUrl: 'marker_Ice.png', iconSize: [32,32], iconAnchor: [16,32], popupAnchor: [0,-20] });
+    		// else if (data[id].Archive == "Lake") 
+    		// 	icon=L.icon({ iconUrl: 'marker_Lake.png', iconSize: [32,32], iconAnchor: [16,32], popupAnchor: [0,-20] });
+    		// else if (data[id].Archive == "Ocean") 
+    		// 	icon=L.icon({ iconUrl: 'marker_Ocean.png', iconSize: [32,32], iconAnchor: [16,32], popupAnchor: [0,-20] });
+    		// else if (data[id].Archive == "Speleothem") 
+    		// 	icon=L.icon({ iconUrl: 'marker_Speleothem.png', iconSize: [32,32], iconAnchor: [16,32], popupAnchor: [0,-20] });
+    		// else if (data[id].Archive == "Tree") 
+    		// 	icon=L.icon({ iconUrl: 'marker_Tree.png', iconSize: [32,32], iconAnchor: [16,32], popupAnchor: [0,-20] });
+    		// return icon;
+      //  })
       .title(function() {})
       .popup(function(d) {
 		    id = d.key[2] -1;            
@@ -163,7 +163,29 @@ function initCrossfilter(data) {
     			+ "Archive: " + "<b>" + data[id].Archive + "</b></br>"
     			+ "Material: " + "<b>" + data[id].Material + "</b></br>";
        })
-       .popupOnHover(true);
+       .popupOnHover(true)
+       .marker(function (d) {
+          id = d.key[2] -1;
+          if (data[id].Archive == "Ice") 
+            icon=L.icon({ iconUrl: 'marker_Ice.png', iconSize: [32,32], iconAnchor: [16,32], popupAnchor: [0,-20] });
+          else if (data[id].Archive == "Lake") 
+            icon=L.icon({ iconUrl: 'marker_Lake.png', iconSize: [32,32], iconAnchor: [16,32], popupAnchor: [0,-20] });
+          else if (data[id].Archive == "Ocean") 
+            icon=L.icon({ iconUrl: 'marker_Ocean.png', iconSize: [32,32], iconAnchor: [16,32], popupAnchor: [0,-20] });
+          else if (data[id].Archive == "Speleothem") 
+            icon=L.icon({ iconUrl: 'marker_Speleothem.png', iconSize: [32,32], iconAnchor: [16,32], popupAnchor: [0,-20] });
+          else if (data[id].Archive == "Tree") 
+            icon=L.icon({ iconUrl: 'marker_Tree.png', iconSize: [32,32], iconAnchor: [16,32], popupAnchor: [0,-20] });
+
+          var marker = new L.Marker(d.key,{
+            // title: _chart.renderTitle() ? _chart.title()(d) : '',
+            // alt: _chart.renderTitle() ? _chart.title()(d) : '',
+            icon: icon,
+            clickable: true,
+            draggable: false
+          });
+          return marker;
+       });
 
   //-----------------------------------
   depthChart  = dc.barChart("#chart-depth");
