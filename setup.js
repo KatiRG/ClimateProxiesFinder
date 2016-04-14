@@ -1,4 +1,6 @@
 //====================================================================
+var ClimateProxiesFinder_DB = "/data01/brock/ClimateProxiesFinder_DB/20150923_html/";
+
 var theMap;
 var mapMaxZoom = 8;
 
@@ -46,7 +48,8 @@ $(document).ready(function() {
   
     initCrossfilter(data);
   
-    var theMap = mapChart.map();
+    theMap = mapChart.map();
+
     new L.graticule({ interval: 10, style: { color: '#333', weight: 0.5, opacity: 1. } }).addTo(theMap);
     new L.Control.MousePosition({lngFirst: true}).addTo(theMap);
     new L.Control.zoomHome({homeZoom: 2, homeCoordinates: [45, -20]}).addTo(theMap);
@@ -57,13 +60,11 @@ $(document).ready(function() {
 
     $('.leaflet-control-zoomhome-home')[0].click();
 
-    // // Clear any table highlights if map is clicked
-    // $('#chart-map').on('click', function() {
-    //   console.log("clicked map")
-    //   d3.selectAll(".dc-table-row")
-    //     .style("font-weight", "normal");
-    // });
-   
+    //theMarkerGroup = mapChart.markerGroup();
+    //theMarkerGroup.on('mouseover', function(e) {
+    //     console.log(e.target);
+    //});
+
   });
 
 });
@@ -124,6 +125,16 @@ function initCrossfilter(data) {
         .domain(["Ice", "Lake", "Ocean", "Speleothem", "Tree"])
    	.range([Ice_color, Lake_color, Ocean_color, Speleothem_color, Tree_color]);
 
+  customMarker = L.Marker.extend({
+    options: { 
+      Id: 'Custom data!'
+   }
+  });
+
+  iconSize = [32,32];
+  iconAnchor = [16,32];
+  popupAnchor = [0,-20];
+
   mapChart  = dc.leafletMarkerChart("#chart-map");
 
   mapChart
@@ -131,39 +142,73 @@ function initCrossfilter(data) {
       .height(300)
       .dimension(mapDim)
       .group(mapGroup)
-      .mapOptions({maxZoom: mapMaxZoom, zoomControl: false})
       .center([45, -19])    // slightly different than zoomHome to have a info updated when triggered
       .zoom(2)         
+      .tiles(function(map) {			// overwrite default baselayer
+	   return L.tileLayer(
+                'http://services.arcgisonline.com/ArcGIS/rest/services/Ocean_Basemap/MapServer/tile/{z}/{y}/{x}',
+                { attribution: 'LSCE &copy; 2016 | Baselayer &copy; ArcGis' }).addTo(map); 
+      })
+      .mapOptions({maxZoom: mapMaxZoom, zoomControl: false})
       .fitOnRender(false)
       .filterByArea(true)
       .cluster(true) 
       .clusterOptions({maxClusterRadius: 50, showCoverageOnHover: false, spiderfyOnMaxZoom: true})
-      .icon(function(d) {        
-    		id = d.key[2] -1;
-    		if (data[id].Archive == "Ice") 
-    			icon=L.icon({ iconUrl: 'marker_Ice.png', iconSize: [32,32], iconAnchor: [16,32], popupAnchor: [0,-20] });
-    		else if (data[id].Archive == "Lake") 
-    			icon=L.icon({ iconUrl: 'marker_Lake.png', iconSize: [32,32], iconAnchor: [16,32], popupAnchor: [0,-20] });
-    		else if (data[id].Archive == "Ocean") 
-    			icon=L.icon({ iconUrl: 'marker_Ocean.png', iconSize: [32,32], iconAnchor: [16,32], popupAnchor: [0,-20] });
-    		else if (data[id].Archive == "Speleothem") 
-    			icon=L.icon({ iconUrl: 'marker_Speleothem.png', iconSize: [32,32], iconAnchor: [16,32], popupAnchor: [0,-20] });
-    		else if (data[id].Archive == "Tree") 
-    			icon=L.icon({ iconUrl: 'marker_Tree.png', iconSize: [32,32], iconAnchor: [16,32], popupAnchor: [0,-20] });
-    		return icon;
-       })
-      .title(function() {})
-      .popup(function(d) {
-		    id = d.key[2] -1;            
-
-    		return  "Id: " + "<b>" + data[id].Id + "</b></br>"
-    			+ "Position: " + "<b>" + data[id].Longitude.toFixed(2) + "°E</b>, <b>" + data[id].Latitude.toFixed(2) + "°N</b></br>"
-    			+ "Depth (m): " + "<span style='color: " + Ocean_color + ";'><b>" +  data[id].Depth.toFixed(2) + "</b></span></br>"
-    			+ "Date (ka): " + "<span style='color: #C9840B;'>" + "from <b>" + data[id].RecentDate.toFixed(2) + "</b> to <b>" + data[id].OldestDate.toFixed(2) + "</b></span></br>"
-    			+ "Archive: " + "<b>" + data[id].Archive + "</b></br>"
-    			+ "Material: " + "<b>" + data[id].Material + "</b></br>";
-       })
-       .popupOnHover(true);
+      .title(function() {})  
+      .popup(function(d,marker) {
+        id = d.key[2] -1;
+            return  "Id: " + "<b>" + data[id].Id + "</b></br>"
+              + "Position: " + "<b>" + data[id].Longitude.toFixed(2) + "°E</b>, <b>" + data[id].Latitude.toFixed(2) + "°N</b></br>"
+              + "Depth (m): " + "<span style='color: " + Ocean_color + ";'><b>" +  data[id].Depth.toFixed(2) + "</b></span></br>"
+              + "Date (ka): " + "<span style='color: #C9840B;'>" + "from <b>" + data[id].RecentDate.toFixed(2) + "</b> to <b>" + data[id].OldestDate.toFixed(2) + "</b></span></br>"
+              + "Archive: " + "<b>" + data[id].Archive + "</b></br>"
+              + "Material: " + "<b>" + data[id].Material + "</b></br>";
+      })
+      .popupOnHover(true)
+      .marker(function(d,map) {
+        	id = d.key[2] -1;
+      		if (data[id].Archive == "Ice") 
+      			icon = L.icon({ iconSize: iconSize, iconAnchor: iconAnchor, popupAnchor: popupAnchor, iconUrl: 'img/marker_Ice.png' });
+      		else if (data[id].Archive == "Lake") 
+      			icon = L.icon({ iconSize: iconSize, iconAnchor: iconAnchor, popupAnchor: popupAnchor, iconUrl: 'img/marker_Lake.png' });
+      		else if (data[id].Archive == "Ocean") 
+      			icon = L.icon({ iconSize: iconSize, iconAnchor: iconAnchor, popupAnchor: popupAnchor, iconUrl: 'img/marker_Ocean.png' });
+      		else if (data[id].Archive == "Speleothem") 
+      			icon = L.icon({ iconSize: iconSize, iconAnchor: iconAnchor, popupAnchor: popupAnchor, iconUrl: 'img/marker_Speleothem.png' });
+      		else if (data[id].Archive == "Tree") 
+      			icon = L.icon({ iconSize: iconSize, iconAnchor: iconAnchor, popupAnchor: popupAnchor, iconUrl: 'img/marker_Tree.png' });
+          marker = new customMarker([data[id].Latitude, data[id].Longitude], {Id: (id+1).toString(), icon: icon});
+          marker.on('mouseover', function(e) {
+      			iconUrlNew = e.target.options.icon.options.iconUrl.replace(".png","_highlight.png");
+      			iconNew = L.icon({ iconSize: iconSize, iconAnchor: iconAnchor, popupAnchor: popupAnchor, iconUrl: iconUrlNew });
+      			e.target.setIcon(iconNew);
+      			d3.selectAll(".dc-table-column._0")
+      				.text(function (d, i) {
+      			     	if (parseInt(d.Id) == e.target.options.Id) {
+      						  this.parentNode.scrollIntoView();
+			              d3.select(this.parentNode).style("font-weight", "bold");
+			            }
+			     		  return d.Id;
+		        	});
+		      });
+          marker.on('mouseout', function(e) {
+      			iconUrlNew = e.target.options.icon.options.iconUrl.replace("_highlight.png", ".png");
+      			iconNew = L.icon({ iconSize: iconSize, iconAnchor: iconAnchor, popupAnchor: popupAnchor, iconUrl: iconUrlNew });
+      			e.target.setIcon(iconNew);
+      			d3.selectAll(".dc-table-column._0")
+      				.text(function (d, i) {
+      			     		if (parseInt(d.Id) == e.target.options.Id) {
+      			                 	d3.select(this.parentNode).style("font-weight", "normal");
+      			               	}
+      			     		return d.Id;
+		        	});
+		      });
+          marker.on('click', function(e) {
+    			  Id = e.target.options.Id;
+          			window.open(ClimateProxiesFinder_DB + data[Id -1].Filename + ".html");
+    		  });
+        return marker;
+      });
 
   //-----------------------------------
   depthChart  = dc.barChart("#chart-depth");
@@ -220,8 +265,6 @@ function initCrossfilter(data) {
      	  })
       }
     });
-    // https://jsfiddle.net/gordonwoodhull/c593ehh7/5/
-    // .colors("#ff0000");
 
   xAxis_ageChart = ageChart.xAxis();
   xAxis_ageChart.ticks(6).tickFormat(d3.format("d"));
@@ -311,15 +354,12 @@ function initCrossfilter(data) {
     .sortBy(function(d){ return +d.Id; })
     .order(d3.ascending);
 
-  // ADD INTERACTIVE FUNCTIONALITY FOR DC TABLE    
-
   // Add ellipses for long entries and make DOI a hyperlink to google scholar
   //http://stackoverflow.com/questions/5474871/html-how-can-i-show-tooltip-only-when-ellipsis-is-activated
   $('#chart-table').on('mouseover', '.dc-table-column', function() {      
-    var $this = $(this);
     // displays popup only if text does not fit in col width
     if (this.offsetWidth < this.scrollWidth) {
-      $this.attr('title', $this.text());
+      d3.select(this).attr('title', d3.select(this).text());
     }
 
     // change DOI colour to blue to indicate hyperlink

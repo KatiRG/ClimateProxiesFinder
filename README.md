@@ -5,4 +5,6 @@ dc.js + leaflet application to discover climate proxies
 
 [Patrick Brockmann](https://github.com/PBrockmann)
 
-![ScreenShot](snapshot1.png)
+![ScreenShot](img/snapshot1.png)
+
+Please visit http://climateproxiesfinder.ipsl.fr
