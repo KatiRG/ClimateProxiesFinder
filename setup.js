@@ -1,5 +1,6 @@
 //====================================================================
 var ClimateProxiesFinder_DB = "/data01/brock/ClimateProxiesFinder_DB/20150923_html/";
+//var ClimateProxiesFinder_DB = "../ClimateProxiesFinder_DB/20150923_html/";
 
 var theMap;
 var mapMaxZoom = 8;
@@ -59,11 +60,6 @@ $(document).ready(function() {
     new L.Control.MiniMap(mapmade, { toggleDisplay: true, zoomLevelOffset: -4 }).addTo(theMap);
 
     $('.leaflet-control-zoomhome-home')[0].click();
-
-    //theMarkerGroup = mapChart.markerGroup();
-    //theMarkerGroup.on('mouseover', function(e) {
-    //     console.log(e.target);
-    //});
 
   });
 
@@ -366,30 +362,21 @@ function initCrossfilter(data) {
     if (d3.select(this).attr("class") == "dc-table-column _6") {
       d3.select(this).style("color", "#0645AD");
     }
-  })
+  });
 
   // Reset DOI colour to default
   $('#chart-table').on('mouseout', '.dc-table-column', function() {
     if (d3.select(this).attr("class") == "dc-table-column _6") {
       d3.select(this).style("color", "#333");
     }
-  })
+  });
 
-  DOI_link = false;
   // Make DOI a hyperlink to google scholar
   $('#chart-table').on('click', '.dc-table-column', function() {
     if (d3.select(this).attr("class") == "dc-table-column _6") {
-      DOI_link = true;
-      window.open("https://scholar.google.fr/scholar?q=" + d3.select(this).text());
-    } else
-      DOI_link = false;
-  })
-
-  // Bind chart-table to other dc charts when row is clicked
-  //http://stackoverflow.com/questions/21113513/reorder-datatable-by-column/21116676#21116676
-  $('#chart-table').on('click', '.dc-table-row', function() {
-    if (! DOI_link && d3.select(this).attr("class") != "dc-table-column _6") {		// filter only if not clicked on DOI
-    	var id = d3.select(this).select(".dc-table-column._0").text();
+        window.open("https://scholar.google.fr/scholar?q=" + d3.select(this).text());
+    } else {
+    	id = d3.select(this.parentNode).select(".dc-table-column._0").text();
     	tableIdDimension.filter(id);
     	dc.redrawAll();
     	// make reset link visible
